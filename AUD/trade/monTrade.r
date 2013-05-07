@@ -18,7 +18,7 @@ RApal_back5 <- brewer.pal(10, "RdYlBu")[6:10]
 RAPal_5 <- brewer.pal(5, 'RdYlBu')
 
 ## get from web or saved xls?
-getWeb <- TRUE
+getWeb <- FALSE
 
 ## PATH stuff
 projectPATH <- "~/R/AUD/trade"
