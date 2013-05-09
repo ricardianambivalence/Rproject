@@ -20,7 +20,7 @@ plotPATH <- file.path(projectPATH, "Rpics")
 ## download from web and format or get from store?
 if (getWeb)
 {
-    absT1 <- "http://www.abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202001.xls&6202.0&Time%20Series%20Spreadsheet&4C127B38427F7C5ACA257B4900128B47&0&Mar%202013&11.04.2013&Latest"
+    absT1 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202001.xls&6202.0&Time%20Series%20Spreadsheet&4D9B3C38E962657FCA257B6500148B16&0&Apr%202013&09.05.2013&Latest"
     absT1xls <- read.xls(absT1, sheet = 'Data1')
     absT1 <- absT1xls[-c(1:10),]
     absT1[,1] <- as.Date(paste0(substr(absT1[,1], 5, 9), "-", substr(absT1[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -33,7 +33,7 @@ if (getWeb)
     rm(absT1xls)
     save(absT1, file = "~/data/aud/alm/almT1.RData")
 
-    absT2 <- "http://www.abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202002.xls&6202.0&Time%20Series%20Spreadsheet&7942DC1D64ADDF2DCA257B4900128C21&0&Mar%202013&11.04.2013&Latest"
+    absT2 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202002.xls&6202.0&Time%20Series%20Spreadsheet&56A51867491B1B61CA257B6500148C02&0&Apr%202013&09.05.2013&Latest"
     absT2xls <- read.xls(absT2, sheet = 'Data1')
     absT2 <- absT2xls[-c(1:10),]
     absT2[,1] <- as.Date(paste0(substr(absT2[,1], 5, 9), "-", substr(absT2[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -46,7 +46,7 @@ if (getWeb)
     rm(absT2xls)
     save(absT2, file = "~/data/aud/alm/almT2.RData")
 
-    absT3 <- "http://www.abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202003.xls&6202.0&Time%20Series%20Spreadsheet&AEA0E7444BF8B1CFCA257B4900128CFA&0&Mar%202013&11.04.2013&Latest"
+    absT3 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202003.xls&6202.0&Time%20Series%20Spreadsheet&CA636E022424854DCA257B6500148CF3&0&Apr%202013&09.05.2013&Latest"
     absT3xls <- read.xls(absT3, sheet = 'Data1')
     absT3 <- absT3xls[-c(1:10),]
     absT3[,1] <- as.Date(paste0(substr(absT3[,1], 5, 9), "-", substr(absT3[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -60,7 +60,7 @@ if (getWeb)
     rm(absT3xls)
     save(absT3, file = "~/data/aud/alm/almT3.RData")
 
-    absT19 <- "http://www.abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202019.xls&6202.0&Time%20Series%20Spreadsheet&A72F1768257CEE10CA257B490012A4D8&0&Mar%202013&11.04.2013&Latest"
+    absT19 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202019.xls&6202.0&Time%20Series%20Spreadsheet&522B56CBE18D07DACA257B650014A68B&0&Apr%202013&09.05.2013&Latest"
     absT19xls <- read.xls(absT19, sheet = 'Data1')
     absT19 <- absT19xls[-c(1:10),]
     absT19[,1] <- as.Date(paste0(substr(absT19[,1], 5, 9), "-", substr(absT19[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -221,22 +221,16 @@ grid.arrange(gg_hrsPop_twin, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
 # growth of hours and employment :: SA + T
-growth6mAR_hrs <- 1200* xts(
-                       sapply(diff(absT19x, log=TRUE), FUN = function(X) SMA(X, 6)),
-                       order.by = index(absT19x)
-                       )[-c(1:6),]
+growth6mAR_hrs = rollapplyr(diff(absT19x, log=TRUE), 6, colMeans, na.rm=TRUE)[-c(1:6),] * 1200
+
 growth6mAR_hrsT <- growth6mAR_hrs[, c(1:9)]
 names(growth6mAR_hrsT) <- names(absT1x)[1:9]
 growth6mAR_hrsSA <- growth6mAR_hrs[, c(10:18)]
 names(growth6mAR_hrsSA) <- names(absT1x)[1:9]
 #
-growth6mAR_nT <- 1200 * xts(sapply(diff(absT1x[, 1:9], log=TRUE),
-                                  FUN = function(X) SMA(X, 6)), order.by = index(absT1x)
-                            )[-c(1:6),]
 
-growth6mAR_nSA <- 1200 * xts(sapply(diff(absT2x[, 1:9], log=TRUE),
-                                  FUN = function(X) SMA(X, 6)), order.by = index(absT1x)
-                            )[-c(1:6),]
+growth6mAR_nT = rollapplyr(diff(absT1x[, 1:9], log=TRUE), 6, colMeans, na.rm=TRUE)[-c(1:6),] * 1200
+growth6mAR_nSA = rollapplyr(diff(absT2x[, 1:9], log=TRUE), 6, colMeans, na.rm=TRUE)[-c(1:6),] * 1200
 
 growthMelt_6mAR_hrsT <- melt(data.frame(date = index(growth6mAR_hrs[xtsDateCut]),
                                       growth6mAR_hrsT[xtsDateCut,]), measure.vars = c(2:10))
