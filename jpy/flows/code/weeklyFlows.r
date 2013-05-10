@@ -1,7 +1,11 @@
-# get the ABS file and make some labour market charts
+# get the weekly MOF data and make some charts
+
+# {{{ clean up
 rm(list=ls()); gc()
 Sys.setenv(TZ = 'GMT')
-#
+# }}}
+
+## {{{ packages and functions
 require(gdata)
 require(data.table)
 require(xts)
@@ -10,9 +14,8 @@ require(reshape2)
 require(TTR)
 require(gridExtra)
 require(timsac)
-
-## get from web or saved xls?
-getWeb <- TRUE
+source("~/r/Rhelpers/helperFuncts.r")
+# }}}
 
 ## {{{ PATH stuff
 projectPATH <- "~/r/jpy/flows"
@@ -21,6 +24,10 @@ codePATH <- file.path(projectPATH, "code")
 dataPATH <- file.path(projectPATH, "data")
 # }}}
 
+# get from web or saved xls?
+getWeb <- FALSE
+
+## {{{ get the data
 if (getWeb)
 {
     MOF_weeklycsv <- "http://www.mof.go.jp/international_policy/reference/itn_transactions_in_securities/week.csv"
@@ -56,3 +63,9 @@ if (getWeb)
 } else {
     load(file.path(dataPATH, "weeklyMOF.rdata"))
 }
+
+# }}}
+
+## {{{ PLOTS
+
+gp_MOFnet <- ggplot(data = MOF_data)
