@@ -28,7 +28,7 @@ dataPATH <- file.path(projectPATH, "data")
 # get from web or saved xls?
 getWeb <- FALSE
 
-## {{{ get the dataza
+## {{{ get the data
 if (getWeb)
 {
     MOF_weeklycsv <- "http://www.mof.go.jp/international_policy/reference/itn_transactions_in_securities/week.csv"
@@ -65,6 +65,10 @@ if (getWeb)
     load(file.path(dataPATH, "weeklyMOF.rdata"))
 }
 
+MOF_data$netBond <- MOF_data$JIA_eq.net + MOF_data$FIJ_eq.net
+MOF_data$netEq <- MOF_data$JIA_bond.net + MOF_data$FIJ_bond.net
+MOF_data$netMmkt <- MOF_data$JIA_mmkt.net + MOF_data$FIJ_mmkt.net
+MOF_data$netTtl <- MOF_data$JIA_total.net + MOF_data$FIJ_total.net
 MOF_datax <- xtsF(MOF_data)
 MOF_data_m <- apply.monthly(MOF_datax, colSums)
 MOFm_melt <- meltx(MOF_data_m)
@@ -204,6 +208,23 @@ gp_FIJ.nets <- ggplot(data = subset(MOFm_melt, variable %in% c('FIJ_eq.net',
 png(file.path(plotPATH, "week", "wk2mon",  "fij_nets.png"))
 grid.arrange(gp_FIJ.nets, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
+
+# japan + foreign net-net
+gp_netNet <- ggplot(data = subset(MOFm_melt, variable %in% c('netEq',
+                                                              'netBond',
+                                                              'netMmkt',
+                                                              'netTtl')),
+                    aes(x = date, y = value, color = variable, fill = variable)) +
+                    facet_grid(variable ~ ., scale = 'free_y') +
+                    labs(y = NULL, x = NULL) +
+                    labs(title = "Net Japanese and Foreign flows: JPYbn/mth") +
+                    theme(legend.position = 'none') +
+                    scale_color_manual(values = RAPal_4, guide = 'none') +
+                    scale_fill_manual(values = RAPal_4, guide = 'none') +
+                    geom_bar(stat = 'identity')
+png(file.path(plotPATH, "week", "wk2mon",  "netNet.png"))
+grid.arrange(gp_netNet, sub = textGrob('www.ricardianambivalence.com'))
+dev.off()
 # }}}
 
 # {{{ weekly data
@@ -335,6 +356,23 @@ gp_FIJwk.nets <- ggplot(data = subset(MOF_melt, variable %in% c('FIJ_eq.net',
                     geom_bar(stat = 'identity')
 png(file.path(plotPATH, "week",  "fij_netsWk.png"))
 grid.arrange(gp_FIJwk.nets, sub = textGrob('www.ricardianambivalence.com'))
+dev.off()
+
+# japan + foreign net-net
+gp_netNetwk <- ggplot(data = subset(MOF_melt, variable %in% c('netEq',
+                                                              'netBond',
+                                                              'netMmkt',
+                                                              'netTtl')),
+                    aes(x = date, y = value, color = variable, fill = variable)) +
+                    facet_grid(variable ~ ., scale = 'free_y') +
+                    labs(y = NULL, x = NULL) +
+                    labs(title = "Net Japanese and Foreign flows: JPYbn/wk") +
+                    theme(legend.position = 'none') +
+                    scale_color_manual(values = RAPal_4, guide = 'none') +
+                    scale_fill_manual(values = RAPal_4, guide = 'none') +
+                    geom_bar(stat = 'identity')
+png(file.path(plotPATH, "week", "netNetwk.png"))
+grid.arrange(gp_netNetwk, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 # }}}
 
