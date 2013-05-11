@@ -273,7 +273,7 @@ grid.arrange(gp_JIAwk.nets, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
 # foreign trading japanese equities
-gp_FIJwk.eq <- ggplot(data = subset(MOF_melt, variable %in% c('FIJ_eqwk.sales',
+gp_FIJwk.eq <- ggplot(data = subset(MOF_melt, variable %in% c('FIJ_eq.sales',
                                                             'FIJ_eq.purch',
                                                             'FIJ_eq.net')),
                     aes(x = date, y = value, color = variable, fill = variable)) +
@@ -338,3 +338,4 @@ grid.arrange(gp_FIJwk.nets, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 # }}}
 
+# }}}
