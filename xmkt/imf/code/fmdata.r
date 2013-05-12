@@ -70,7 +70,7 @@ gp_Rgdp <- ggplot(subset(ggR_melt,
                 theme(axis.text.x = element_text(angle = 90)) +
                 geom_bar(stat = 'identity')
 #
-png(file.path(plotpath, "imfFM_revGDP.png"))
+png(file.path(plotPATH, "imfFM_revGDP.png"))
 grid.arrange(gp_Rgdp, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
@@ -92,7 +92,7 @@ gp_Xgdp <- ggplot(subset(ggX_melt,
                 theme(axis.text.x = element_text(angle = 90)) +
                 geom_bar(stat = 'identity')
 #
-png(file.path(plotpath, "imfFM_expGDP.png"))
+png(file.path(plotPATH, "imfFM_expGDP.png"))
 grid.arrange(gp_Xgdp, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
@@ -114,7 +114,7 @@ gp_OBgdp <- ggplot(subset(ggOB_melt,
                 theme(axis.text.x = element_text(angle = 90)) +
                 geom_bar(stat = 'identity')
 #
-png(file.path(plotpath, "imfFM_obGDP.png"))
+png(file.path(plotPATH, "imfFM_obGDP.png"))
 grid.arrange(gp_OBgdp, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
@@ -136,6 +136,6 @@ gp_PBgdp <- ggplot(subset(ggPB_melt,
                 theme(axis.text.x = element_text(angle = 90)) +
                 geom_bar(stat = 'identity')
 #
-png(file.path(plotpath, "imfFM_pbGDP.png"))
+png(file.path(plotPATH, "imfFM_pbGDP.png"))
 grid.arrange(gp_PBgdp, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
