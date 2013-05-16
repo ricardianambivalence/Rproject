@@ -4,6 +4,7 @@ rm(list=ls()); gc()
 require(ggplot2)
 require(reshape2)
 require(gridExtra)
+require(xts)
 source('~/R/Rhelpers/helperFuncts.r')
 source('~/R/Rhelpers/RAcolorpal.r')
 # }}}
@@ -108,9 +109,7 @@ govtR$AU_rev <- govtR$AU_rev / govtR$AU_rev[1] * 100
 govtR <- govtR[, c('date', 'AU_rev', 'NZ_rev')]
 govtRx <- xtsF(govtR)
 
-
 # {{{ NZ and AUD ToT and budget stuff
-
 
 col2 = c('orange', 'black')
 
