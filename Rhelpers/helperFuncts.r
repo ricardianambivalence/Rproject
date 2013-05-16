@@ -5,9 +5,9 @@
 xtsF <- function(x)
 {
 # add a smart date switch: http://stackoverflow.com/questions/6194285/dealing-with-messy-dates/7975560#7975560
-    xts(x[,-1], order.by = as.POSIXct(x[,1]))
-    index(x) = make.index.unique(index(x))
-    return(x)
+    ddx <- xts(x[,-1], order.by = as.POSIXct(x[,1]))
+    index(ddx) = make.index.unique(index(ddx))
+    return(ddx)
 }
 
 meltx <- function(dx) { melt(data.frame(date = index(dx), dx), id.vars = 1) }
