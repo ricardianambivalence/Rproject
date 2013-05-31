@@ -139,8 +139,8 @@ if (getWeb)
                       'profScient_stX', 'othrServ_stX', 'otherAll_stX', 'Ttl_stX'
                       )
 
-    cxT2b <- readABS(capexT2b)
-    names(cxT2b) <- c(
+    cxT2c <- readABS(capexT2c)
+    names(cxT2c) <- c(
                       'min_ltX', 'manuFood_ltX', 'manuBevTob_ltX', 'manuTCF_ltX',
                       'manuWood_ltX', 'manuPulp_ltX', 'manuPrinting_ltX',
                       'manuFFuels_ltX', 'manuChem_ltX', 'manuPolymer_ltX',
@@ -150,6 +150,32 @@ if (getWeb)
                       'constn_ltX', 'wholsl_ltX', 'retail_ltX',
                       'transpt_ltX', 'ict_ltX', 'fins_ltX', 'rentRE_ltX',
                       'profScient_ltX', 'othrServ_ltX', 'otherAll_ltX', 'Ttl_ltX'
+                      )
+
+    cxT2e <- readABS(capexT2e)
+    names(cxT2e) <- c(
+                      'min_nom_sa', 'manuFood_nom_sa', 'manuBevTob_nom_sa', 'manuTCF_nom_sa',
+                      'manuWood_nom_sa', 'manuPulp_nom_sa', 'manuPrinting_nom_sa',
+                      'manuFFuels_nom_sa', 'manuChem_nom_sa', 'manuPolymer_nom_sa',
+                      'manuNonMetalMin_nom_sa', 'manuMetal_nom_sa',
+                      'manuFabMetal_nom_sa', 'manuTranspt_nom_sa', 'manuMachEqp_nom_sa',
+                      'manuFurn_nom_sa', 'manuTtl_nom_sa', 'utils_nom_sa',
+                      'constn_nom_sa', 'wholsl_nom_sa', 'retail_nom_sa',
+                      'transpt_nom_sa', 'ict_nom_sa', 'fins_nom_sa', 'rentRE_nom_sa',
+                      'profScient_nom_sa', 'othrServ_nom_sa', 'otherAll_nom_sa', 'Ttl_nom_sa'
+                      )
+
+    cxT2f <- readABS(capexT2f)
+    names(cxT2f) <- c(
+                      'min_nom_t', 'manuFood_nom_t', 'manuBevTob_nom_t', 'manuTCF_nom_t',
+                      'manuWood_nom_t', 'manuPulp_nom_t', 'manuPrinting_nom_t',
+                      'manuFFuels_nom_t', 'manuChem_nom_t', 'manuPolymer_nom_t',
+                      'manuNonMetalMin_nom_t', 'manuMetal_nom_t',
+                      'manuFabMetal_nom_t', 'manuTranspt_nom_t', 'manuMachEqp_nom_t',
+                      'manuFurn_nom_t', 'manuTtl_nom_t', 'utils_nom_t',
+                      'constn_nom_t', 'wholsl_nom_t', 'retail_nom_t',
+                      'transpt_nom_t', 'ict_nom_t', 'fins_nom_t', 'rentRE_nom_t',
+                      'profScient_nom_t', 'othrServ_nom_t', 'otherAll_nom_t', 'Ttl_nom_t'
                       )
     # }}}
 
