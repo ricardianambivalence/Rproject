@@ -27,12 +27,13 @@ RApal_back5 <- brewer.pal(10, "RdYlBu")[6:10]
 RAPal_5 <- brewer.pal(5, 'RdYlBu')
 # }}}
 
-## get from web or saved xls?
-getWeb <- TRUE
+# {{{ get data
+getWeb <- TRUE # new data, or from the store?
 
 ## download from web and format or get from store?
 if (getWeb)
 {
+# file paths -- could be html addy
     capexT1a <- file.path(dataPATH, "5625001a.xls")
     capexT1b <- file.path(dataPATH, "5625001b.xls")
     capexT1c <- file.path(dataPATH, "5625001c.xls")
@@ -59,6 +60,8 @@ if (getWeb)
     capexT8b <- file.path(dataPATH, "5625008b.xls")
     capexT9a <- file.path(dataPATH, "5625009a.xls")
     capexT9b <- file.path(dataPATH, "5625009b.xls")
+    capexT12a <- file.path(dataPATH, "56250012a.xls")
+    capexT12b <- file.path(dataPATH, "56250012b.xls")
 
     # {{{ get data
     cxT1a <- readABS(capexT1a)
@@ -107,7 +110,7 @@ if (getWeb)
                       'constn_nom_nsa', 'wholsl_nom_nsa', 'retail_nom_nsa',
                       'transpt_nom_nsa', 'ict_nom_nsa', 'fins_nom_nsa', 'rentRE_nom_nsa',
                       'profScient_nom_nsa', 'othrServ_nom_nsa', 'otherAll_nom_nsa',
-                      'Ttl_nom_nsa', 'minCoal_nom_nsa', 'minOilGas_nom_nsa',
+                      'all_nom_nsa', 'minCoal_nom_nsa', 'minOilGas_nom_nsa',
                       'minOre_nom_nsa', 'minNonMetal_nom_nsa', 'minExplr_nom_nsa'
                       )
 
@@ -121,22 +124,7 @@ if (getWeb)
                       'manuFurn_stX', 'manuTtl_stX', 'utils_stX',
                       'constn_stX', 'wholsl_stX', 'retail_stX',
                       'transpt_stX', 'ict_stX', 'fins_stX', 'rentRE_stX',
-                      'profScient_stX', 'othrServ_stX', 'otherAll_stX',
-                      'Ttl_stX', 'minCoal_stX', 'minOilGas_stX',
-                      'minOre_stX', 'minNonMetal_stX', 'minExplr_stX'
-                      )
-
-    cxT2b <- readABS(capexT2b)
-    names(cxT2b) <- c(
-                      'min_stX', 'manuFood_stX', 'manuBevTob_stX', 'manuTCF_stX',
-                      'manuWood_stX', 'manuPulp_stX', 'manuPrinting_stX',
-                      'manuFFuels_stX', 'manuChem_stX', 'manuPolymer_stX',
-                      'manuNonMetalMin_stX', 'manuMetal_stX',
-                      'manuFabMetal_stX', 'manuTranspt_stX', 'manuMachEqp_stX',
-                      'manuFurn_stX', 'manuTtl_stX', 'utils_stX',
-                      'constn_stX', 'wholsl_stX', 'retail_stX',
-                      'transpt_stX', 'ict_stX', 'fins_stX', 'rentRE_stX',
-                      'profScient_stX', 'othrServ_stX', 'otherAll_stX', 'Ttl_stX'
+                      'profScient_stX', 'othrServ_stX', 'otherAll_stX', 'all_stX'
                       )
 
     cxT2c <- readABS(capexT2c)
@@ -149,7 +137,7 @@ if (getWeb)
                       'manuFurn_ltX', 'manuTtl_ltX', 'utils_ltX',
                       'constn_ltX', 'wholsl_ltX', 'retail_ltX',
                       'transpt_ltX', 'ict_ltX', 'fins_ltX', 'rentRE_ltX',
-                      'profScient_ltX', 'othrServ_ltX', 'otherAll_ltX', 'Ttl_ltX'
+                      'profScient_ltX', 'othrServ_ltX', 'otherAll_ltX', 'all_ltX'
                       )
 
     cxT2e <- readABS(capexT2e)
@@ -162,7 +150,7 @@ if (getWeb)
                       'manuFurn_nom_sa', 'manuTtl_nom_sa', 'utils_nom_sa',
                       'constn_nom_sa', 'wholsl_nom_sa', 'retail_nom_sa',
                       'transpt_nom_sa', 'ict_nom_sa', 'fins_nom_sa', 'rentRE_nom_sa',
-                      'profScient_nom_sa', 'othrServ_nom_sa', 'otherAll_nom_sa', 'Ttl_nom_sa'
+                      'profScient_nom_sa', 'othrServ_nom_sa', 'otherAll_nom_sa', 'all_nom_sa'
                       )
 
     cxT2f <- readABS(capexT2f)
@@ -175,7 +163,77 @@ if (getWeb)
                       'manuFurn_nom_t', 'manuTtl_nom_t', 'utils_nom_t',
                       'constn_nom_t', 'wholsl_nom_t', 'retail_nom_t',
                       'transpt_nom_t', 'ict_nom_t', 'fins_nom_t', 'rentRE_nom_t',
-                      'profScient_nom_t', 'othrServ_nom_t', 'otherAll_nom_t', 'Ttl_nom_t'
+                      'profScient_nom_t', 'othrServ_nom_t', 'otherAll_nom_t', 'all_nom_t'
+                      )
+
+    cxT3a <- readABS(capexT3a)
+    names(cxT3a) <- c(
+                      'BnS_real_nsa', 'EPM_real_nsa', 'all_real_nsa',
+                      'BnS_real_sa', 'EPM_real_sa', 'all_real_sa',
+                      'BnS_real_t', 'EPM_real_t', 'all_real_t'
+                      )
+
+    cxT3b <- readABS(capexT3b)
+    names(cxT3b) <- c(
+                      'min_real_nsa', 'manu_real_nsa', 'othr_real_nsa', 'all_real_nsa',
+                      'min_real_sa', 'manu_real_sa', 'othr_real_sa', 'all_real_sa',
+                      'min_real_t', 'manu_real_t', 'othr_real_t', 'all_real_t'
+                      )
+
+    cxT12a <- readABS(capexT12a)
+    names(cxT12a) <- c(
+                       'min_BnS_e1', 'min_BnS_e2', 'min_BnS_e3', 'min_BnS_e4',
+                       'min_BnS_e5', 'min_BnS_e6', 'min_BnS_e7',
+                       'min_EPM_e1', 'min_EPM_e2', 'min_EPM_e3', 'min_EPM_e4',
+                       'min_EPM_e5', 'min_EPM_e6', 'min_EPM_e7',
+                       'min_Ttl_e1', 'min_Ttl_e2', 'min_Ttl_e3', 'min_Ttl_e4',
+                       'min_Ttl_e5', 'min_Ttl_e6', 'min_Ttl_e7',
+                       'manu_BnS_e1', 'manu_BnS_e2', 'manu_BnS_e3', 'manu_BnS_e4',
+                       'manu_BnS_e5', 'manu_BnS_e6', 'manu_BnS_e7',
+                       'manu_EPM_e1', 'manu_EPM_e2', 'manu_EPM_e3', 'manu_EPM_e4',
+                       'manu_EPM_e5', 'manu_EPM_e6', 'manu_EPM_e7',
+                       'manu_Ttl_e1', 'manu_Ttl_e2', 'manu_Ttl_e3', 'manu_Ttl_e4',
+                       'manu_Ttl_e5', 'manu_Ttl_e6', 'manu_Ttl_e7',
+                       'othr_BnS_e1', 'othr_BnS_e2', 'othr_BnS_e3', 'othr_BnS_e4',
+                       'othr_BnS_e5', 'othr_BnS_e6', 'othr_BnS_e7',
+                       'othr_EPM_e1', 'othr_EPM_e2', 'othr_EPM_e3', 'othr_EPM_e4',
+                       'othr_EPM_e5', 'othr_EPM_e6', 'othr_EPM_e7',
+                       'othr_Ttl_e1', 'othr_Ttl_e2', 'othr_Ttl_e3', 'othr_Ttl_e4',
+                       'othr_Ttl_e5', 'othr_Ttl_e6', 'othr_Ttl_e7',
+                       'all_BnS_e1', 'all_BnS_e2', 'all_BnS_e3', 'all_BnS_e4',
+                       'all_BnS_e5', 'all_BnS_e6', 'all_BnS_e7',
+                       'all_EPM_e1', 'all_EPM_e2', 'all_EPM_e3', 'all_EPM_e4',
+                       'all_EPM_e5', 'all_EPM_e6', 'all_EPM_e7',
+                       'all_Ttl_e1', 'all_Ttl_e2', 'all_Ttl_e3', 'all_Ttl_e4',
+                       'all_Ttl_e5', 'all_Ttl_e6', 'all_Ttl_e7'
+                      )
+
+    cxT12b <- readABS(capexT12b)
+    names(cxT12b) <- c(
+                       'min_BnS_e1RR', 'min_BnS_e2RR', 'min_BnS_e3RR', 'min_BnS_e4RR',
+                       'min_BnS_e5RR', 'min_BnS_e6RR', 'min_BnS_e7RR',
+                       'min_EPM_e1RR', 'min_EPM_e2RR', 'min_EPM_e3RR', 'min_EPM_e4RR',
+                       'min_EPM_e5RR', 'min_EPM_e6RR', 'min_EPM_e7RR',
+                       'min_Ttl_e1RR', 'min_Ttl_e2RR', 'min_Ttl_e3RR', 'min_Ttl_e4RR',
+                       'min_Ttl_e5RR', 'min_Ttl_e6RR', 'min_Ttl_e7RR',
+                       'manu_BnS_e1RR', 'manu_BnS_e2RR', 'manu_BnS_e3RR', 'manu_BnS_e4RR',
+                       'manu_BnS_e5RR', 'manu_BnS_e6RR', 'manu_BnS_e7RR',
+                       'manu_EPM_e1RR', 'manu_EPM_e2RR', 'manu_EPM_e3RR', 'manu_EPM_e4RR',
+                       'manu_EPM_e5RR', 'manu_EPM_e6RR', 'manu_EPM_e7RR',
+                       'manu_Ttl_e1RR', 'manu_Ttl_e2RR', 'manu_Ttl_e3RR', 'manu_Ttl_e4RR',
+                       'manu_Ttl_e5RR', 'manu_Ttl_e6RR', 'manu_Ttl_e7RR',
+                       'othr_BnS_e1RR', 'othr_BnS_e2RR', 'othr_BnS_e3RR', 'othr_BnS_e4RR',
+                       'othr_BnS_e5RR', 'othr_BnS_e6RR', 'othr_BnS_e7RR',
+                       'othr_EPM_e1RR', 'othr_EPM_e2RR', 'othr_EPM_e3RR', 'othr_EPM_e4RR',
+                       'othr_EPM_e5RR', 'othr_EPM_e6RR', 'othr_EPM_e7RR',
+                       'othr_Ttl_e1RR', 'othr_Ttl_e2RR', 'othr_Ttl_e3RR', 'othr_Ttl_e4RR',
+                       'othr_Ttl_e5RR', 'othr_Ttl_e6RR', 'othr_Ttl_e7RR',
+                       'all_BnS_e1RR', 'all_BnS_e2RR', 'all_BnS_e3RR', 'all_BnS_e4RR',
+                       'all_BnS_e5RR', 'all_BnS_e6RR', 'all_BnS_e7RR',
+                       'all_EPM_e1RR', 'all_EPM_e2RR', 'all_EPM_e3RR', 'all_EPM_e4RR',
+                       'all_EPM_e5RR', 'all_EPM_e6RR', 'all_EPM_e7RR',
+                       'all_Ttl_e1RR', 'all_Ttl_e2RR', 'all_Ttl_e3RR', 'all_Ttl_e4RR',
+                       'all_Ttl_e5RR', 'all_Ttl_e6RR', 'all_Ttl_e7RR'
                       )
     # }}}
 
@@ -183,4 +241,5 @@ if (getWeb)
     load("~/data/aud/trade/tradeXByDest.RData")
 }
 
+# }}}
 
