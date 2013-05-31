@@ -16,6 +16,15 @@ x2df <- function(XTS) {data.frame('date' = index(XTS), data.frame(coredata(XTS))
 
 "%notin%" <- function(x, y) x[!x %in% y]
 
+# read ABS sheet function
+readABS <- function(XLS, SHEET = 'Data1', LineSkip = 9)
+{
+    dat <- read.xls(XLS, sheet = SHEET, as.is=TRUE, skip = LineSkip)
+    dat[,1] <- XLdate(dat[,1])
+    names(dat)[1] <- 'date'
+    return(xtsF(dat))
+}
+
 # }}}
 
 # {{{ plot helpers
@@ -33,6 +42,8 @@ fcb <- function(hh = TRUE)
            )
     return(dd)
 }
+
+fcbx <- function(hh = TRUE) { xtsF( fcb() ) }
 ## }}}
 
 # {{{  Date functions
@@ -49,6 +60,11 @@ dateSwitch <- function(index, lastDay = TRUE, adv = 0)
         index_LT$mday <- 1
         return(index_LT)
     }
+}
+
+XLdate <- function(Xd)
+{
+    Xd <- as.Date(paste0(substr(Xd, 5, 9), "-", substr(Xd, 1, 3), "-01"), format = "%Y-%b-%d")
 }
 
 # end date stuff }}}
