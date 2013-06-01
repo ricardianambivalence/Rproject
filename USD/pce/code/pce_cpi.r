@@ -32,7 +32,7 @@ if(getDF)
 
     tt <- as.Date(paste("01-", TMpce_df[,1], sep = ""), format = "%d-%b-%y")
     xmd <- xts(TMpce_df[,-c(1)], order.by=tt)
-    xmd$AR3m <- SMA(xmd$AR1m, n=3)
+    xmd$AR3m <- rollapplyr(xmd$AR1m, width=3, colMeans)
 
     save(xmd, file = file.path(dataPATH, "US_tmPCE.rdata"))
 } else {
