@@ -24,7 +24,7 @@ if(getDF)
     # get trimmed mean PCE data -- from the Dallas Fed
     TMpceURL <- "http://www.dallasfed.org/assets/documents/research/pce/pce_hist.xls"
     TMpce_df <- read.xls(TMpceURL, skip=2, as.is=TRUE)
-    names(TMpce_df) <- c('data', 'AR1m', 'AR6m', 'AR12m')
+    names(TMpce_df) <- c('date', 'pce_AR1m', 'pce_AR6m', 'pce_AR12m')
 
     options(warn=-1)
     TMpce_df[,(2:ncol(TMpce_df))] <- sapply(TMpce_df[,(2:(ncol(TMpce_df)))], as.numeric)
@@ -32,7 +32,7 @@ if(getDF)
 
     tt <- as.Date(paste("01-", TMpce_df[,1], sep = ""), format = "%d-%b-%y")
     xmd <- xts(TMpce_df[,-c(1)], order.by=tt)
-    xmd$AR3m <- rollapplyr(xmd$AR1m, width=3, colMeans)
+    xmd$pce_AR3m <- rollapplyr(xmd$pce_AR1m, width=3, colMeans)
 
     save(xmd, file = file.path(dataPATH, "US_tmPCE.rdata"))
 } else {
@@ -54,14 +54,20 @@ if (getCF)
 
     CF_cpi_x <- readClvFed(CF_cpi, LineSkip = 1)
     names(CF_cpi_x) <- c('index', 'AR1m')
+
     CF_ccpi_x <- readClvFed(CF_ccpi)
     names(CF_ccpi_x) <- c('index', 'AR1m')
-    CF_mcpi_x <- readClvFed(CF_mcpi, LineSkip = 1, dateType = 'Y-b-d')
-    names(CF_mcpi_x) <- c('MoMppt', 'm1AR')
-    CF_tmcpi_x <- readClvFed(CF_tmcpi, LineSkip = 1, dateType = 'Y-b-d')[, 1:2]
-    names(CF_tmcpi_x) <- c('MoMppt', 'm1AR')
 
-    save(CF_cpi_x, CF_ccpi_x, CF_mcpi_x, CF_tmcpi_x, file = file.path(dataPATH, 'US_CPI.rdata'))
+    CF_mcpi_x <- readClvFed(CF_mcpi, LineSkip = 1, dateType = 'Y-b-d')
+    names(CF_mcpi_x) <- c('MoMppt', 'AR1m')
+
+    CF_tmcpi_x <- readClvFed(CF_tmcpi, LineSkip = 1, dateType = 'Y-b-d')[, 1:2]
+    names(CF_tmcpi_x) <- c('MoMppt', 'AR1m')
+
+    CPI_AR1 <- cbind(CF_cpi_x$AR1m, CF_ccpi_x$AR1m, CF_mcpi_x$AR1m, CF_tmcpi_x$AR1m)
+    names(CPI_AR1) <- c('cpi_AR1', 'ccpi_AR1', 'mcpi_AR1', 'tmcpi_AR1')
+
+    save(CPI_AR1, CF_cpi_x, CF_ccpi_x, CF_mcpi_x, CF_tmcpi_x, file = file.path(dataPATH, 'US_CPI.rdata'))
 
 } else {
     load(file.path(dataPATH, 'US_CPI.rdata'))
@@ -69,7 +75,7 @@ if (getCF)
 
 # }}}
 
-usInflx <- xtsF(dd)
+usInflx <- merge(CPI_AR1, xmd$pce_AR1m)
 
 usInflx_3m <- rollapplyr(usInflx, 3, colMeans)
 usInflx_6m <- rollapplyr(usInflx, 6, colMeans)
