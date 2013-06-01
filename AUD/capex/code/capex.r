@@ -27,8 +27,9 @@ RApal_back5 <- brewer.pal(10, "RdYlBu")[6:10]
 RAPal_5 <- brewer.pal(5, 'RdYlBu')
 # }}}
 
-# {{{ get data
 getABS <- TRUE # new data, or from the store?
+
+# {{{ get data
 
 ## download from web and format or get from store?
 if (getABS)
@@ -242,11 +243,82 @@ if (getABS)
                       )
 # }}}
 
-    # save(, file = file.path(dataPATH, "capexData.rdata"))
+    save(cxT1a, cxT1b, cxT1c, cxT1e, cxT1f, cxT2a, cxT2b, cxT2c, cxT2e, cxT2f,
+         cxT3a, cxT3b, cxT12a, cxT12b,
+         file = file.path(dataPATH, "capexData.rdata"))
 
 } else {
-    load("~/data/aud/trade/tradeXByDest.RData")
+    load(file.path(dataPATHm "capexData.rdata"))
 }
 
 # }}}
+
+# {{{ data analysis
+
+# split the data in prep for analysis
+
+min_BnS_exp <- cxT12a[, c(1:7)]
+min_EPM_exp <- cxT12a[, c(8:14)]
+min_Ttl_exp <- cxT12a[, c(15:21)]
+manu_BnS_exp <- cxT12a[, c(22:28)]
+manu_EPM_exp <- cxT12a[, c(29:35)]
+manu_Ttl_exp <- cxT12a[, c(36:42)]
+othr_BnS_exp <- cxT12a[, c(43:49)]
+othr_EPM_exp <- cxT12a[, c(50:56)]
+othr_Ttl_exp <- cxT12a[, c(57:63)]
+all_BnS_exp <- cxT12a[, c(64:70)]
+all_EPM_exp <- cxT12a[, c(71:77)]
+all_Ttl_exp <- cxT12a[, c(78:84)]
+
+modList = list()
+sector = 'all'
+
+getSector <- function(code) {
+    sector <- switch(as.character(code),
+                     "7" = "min_BnS",
+                     "14" = "min_EPM",
+                     "21" = "min_Ttl",
+                     "28" = "manu_BnS",
+                     "35" = "manu_EPM",
+                     "42" = "manu_Ttl",
+                     "49" = "othr_BnS",
+                     "56" = "othr_EPM",
+                     "63" = "othr_Ttl",
+                     "70" = "all_BnS",
+                     "77" = "all_EPM",
+                     "84" = "all_Ttl")
+}
+
+getSector2 <- function(code) {
+    sector <- switch(as.character(code),
+                     "0" = "min_BnS",
+                     "1" = "min_EPM",
+                     "2" = "min_Ttl",
+                     "3" = "manu_BnS",
+                     "4" = "manu_EPM",
+                     "5" = "manu_Ttl",
+                     "6" = "othr_BnS",
+                     "7" = "othr_EPM",
+                     "8" = "othr_Ttl",
+                     "9" = "all_BnS",
+                     "10" = "all_EPM",
+                     "11" = "all_Ttl")
+}
+
+for (i in seq(7, 84, 7)) {
+    for (j in 1:6) {
+        sector <- getSector(i)
+        modList[[sector]][[j]] <- lm(log(cxT12a[, i]) ~ log(cxT12a[,(i-7+j)]))
+    }
+}
+
+predFrame <- cxT12a
+for (i in c(1:6, 8:13, 15:20, 22:27, 29:34, 36:41, 43:48, 50:55, 57:62, 64:69, 71:76, 78:83)) {
+    sector <- getSector2(i %/% 7)
+    est <- i %% 7
+    predFrame[,i] <- exp(modList[[sector]][[est]]$coefficients[1] +
+                        modList[[sector]][[est]]$coefficients[2] * log(cxT12a[,i]))
+}
+
+plot(100*(predFrame[,3] / cxT12a[,7] - 1), type='o', pch=19, las=1)
 
