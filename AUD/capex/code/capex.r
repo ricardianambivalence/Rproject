@@ -28,42 +28,47 @@ RAPal_5 <- brewer.pal(5, 'RdYlBu')
 # }}}
 
 # {{{ get data
-getWeb <- TRUE # new data, or from the store?
+getABS <- TRUE # new data, or from the store?
 
 ## download from web and format or get from store?
-if (getWeb)
+if (getABS)
 {
-# file paths -- could be html addy
-    capexT1a <- file.path(dataPATH, "5625001a.xls")
-    capexT1b <- file.path(dataPATH, "5625001b.xls")
-    capexT1c <- file.path(dataPATH, "5625001c.xls")
-    capexT1e <- file.path(dataPATH, "5625001e.xls")
-    capexT1f <- file.path(dataPATH, "5625001f.xls")
-    capexT2a <- file.path(dataPATH, "5625002a.xls")
-    capexT2b <- file.path(dataPATH, "5625002b.xls")
-    capexT2c <- file.path(dataPATH, "5625002c.xls")
-    capexT2e <- file.path(dataPATH, "5625002e.xls")
-    capexT2f <- file.path(dataPATH, "5625002f.xls")
-    capexT3a <- file.path(dataPATH, "5625003a.xls")
-    capexT3b <- file.path(dataPATH, "5625003b.xls")
-    capexT4a <- file.path(dataPATH, "5625004a.xls")
-    capexT4b <- file.path(dataPATH, "5625004b.xls")
-    capexT4c <- file.path(dataPATH, "5625004c.xls")
-    capexT5a <- file.path(dataPATH, "5625005a.xls")
-    capexT5b <- file.path(dataPATH, "5625005b.xls")
-    capexT5c <- file.path(dataPATH, "5625005c.xls")
-    capexT6a <- file.path(dataPATH, "5625006a.xls")
-    capexT6b <- file.path(dataPATH, "5625006b.xls")
-    capexT7a <- file.path(dataPATH, "5625007a.xls")
-    capexT7b <- file.path(dataPATH, "5625007b.xls")
-    capexT8a <- file.path(dataPATH, "5625008a.xls")
-    capexT8b <- file.path(dataPATH, "5625008b.xls")
-    capexT9a <- file.path(dataPATH, "5625009a.xls")
-    capexT9b <- file.path(dataPATH, "5625009b.xls")
-    capexT12a <- file.path(dataPATH, "56250012a.xls")
-    capexT12b <- file.path(dataPATH, "56250012b.xls")
+# {{{ file paths -- html addy
+    capexT1a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625001a.xls&5625.0&Time%20Series%20Spreadsheet&D9D8A1CB23C5992FCA257B7A0018F0AB&0&March%202013&30.05.2013&Latest"
+    capexT1b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625001a.xls&5625.0&Time%20Series%20Spreadsheet&D9D8A1CB23C5992FCA257B7A0018F0AB&0&March%202013&30.05.2013&Latest"
+    capexT1c <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625001c.xls&5625.0&Time%20Series%20Spreadsheet&C9523DCD4D1151F7CA257B7A0018F70C&0&March%202013&30.05.2013&Latest"
+    capexT1e <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625001e.xls&5625.0&Time%20Series%20Spreadsheet&FA0752443C411F47CA257B7A0018F7A5&0&March%202013&30.05.2013&Latest"
+    capexT1f <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625001f.xls&5625.0&Time%20Series%20Spreadsheet&7D3FF74795ACA6EBCA257B7A0018F846&0&March%202013&30.05.2013&Latest"
+    capexT2a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625002a.xls&5625.0&Time%20Series%20Spreadsheet&6D6835EE754FB91DCA257B7A0018F8E0&0&March%202013&30.05.2013&Latest"
+    capexT2b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625002b.xls&5625.0&Time%20Series%20Spreadsheet&A88688F3E1A8D040CA257B7A0018F97E&0&March%202013&30.05.2013&Latest"
+    capexT2c <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625002c.xls&5625.0&Time%20Series%20Spreadsheet&B751460C105CF01BCA257B7A0018FA23&0&March%202013&30.05.2013&Latest"
+    capexT2e <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625002e.xls&5625.0&Time%20Series%20Spreadsheet&A6129D5540E5A75ACA257B7A0018FACB&0&March%202013&30.05.2013&Latest"
+    capexT2f <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625002f.xls&5625.0&Time%20Series%20Spreadsheet&1B75E3D9105A0318CA257B7A0018FB63&0&March%202013&30.05.2013&Latest"
+    capexT3a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625003a.xls&5625.0&Time%20Series%20Spreadsheet&C70066FC2601E670CA257B7A0018FC02&0&March%202013&30.05.2013&Latest"
+    capexT3b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625003b.xls&5625.0&Time%20Series%20Spreadsheet&76B8FA728C0D7C47CA257B7A0018FC91&0&March%202013&30.05.2013&Latest"
+    capexT4a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625004a.xls&5625.0&Time%20Series%20Spreadsheet&644FDB13E52CDABACA257B7A0018FD21&0&March%202013&30.05.2013&Latest"
+    capexT4b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625004b.xls&5625.0&Time%20Series%20Spreadsheet&81483A9419508F90CA257B7A0018FDB5&0&March%202013&30.05.2013&Latest"
+    capexT4c <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625004c.xls&5625.0&Time%20Series%20Spreadsheet&54E64F25C45DA453CA257B7A0018FE64&0&March%202013&30.05.2013&Latest"
+    capexT5a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625005a.xls&5625.0&Time%20Series%20Spreadsheet&4A458C0EE5FA2F79CA257B7A0018FF09&0&March%202013&30.05.2013&Latest"
+    capexT5b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625005b.xls&5625.0&Time%20Series%20Spreadsheet&D9D5CE41C2C05951CA257B7A0018FFAB&0&March%202013&30.05.2013&Latest"
+    capexT5c <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625005c.xls&5625.0&Time%20Series%20Spreadsheet&A218C3A469B5363DCA257B7A00190052&0&March%202013&30.05.2013&Latest"
+    capexT6a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625006a.xls&5625.0&Time%20Series%20Spreadsheet&A1BC836368A39050CA257B7A001900E8&0&March%202013&30.05.2013&Latest"
+    capexT6b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625006b.xls&5625.0&Time%20Series%20Spreadsheet&999554A590313245CA257B7A00190189&0&March%202013&30.05.2013&Latest"
+    capexT7a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625007a.xls&5625.0&Time%20Series%20Spreadsheet&E6E05F4108651D07CA257B7A00190228&0&March%202013&30.05.2013&Latest"
+    capexT7b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625007b.xls&5625.0&Time%20Series%20Spreadsheet&7D9DCC83366CC03ECA257B7A001902CA&0&March%202013&30.05.2013&Latest"
+    capexT8a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625008a.xls&5625.0&Time%20Series%20Spreadsheet&1B7A0CB731B258ACCA257B7A0019036C&0&March%202013&30.05.2013&Latest"
+    capexT8b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625009b.xls&5625.0&Time%20Series%20Spreadsheet&0A70783BD1709037CA257B7A0019054B&0&March%202013&30.05.2013&Latest"
+    capexT9a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625009a.xls&5625.0&Time%20Series%20Spreadsheet&E28996DBAB6FF607CA257B7A001904AB&0&March%202013&30.05.2013&Latest"
+    capexT9b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625009b.xls&5625.0&Time%20Series%20Spreadsheet&0A70783BD1709037CA257B7A0019054B&0&March%202013&30.05.2013&Latest"
+    capexT10a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&56250010a.xls&5625.0&Time%20Series%20Spreadsheet&3BB84D1C3C4AB99ECA257B7A001905E6&0&March%202013&30.05.2013&Latest"
+    capexT10b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&56250010b.xls&5625.0&Time%20Series%20Spreadsheet&7430769A1F072C43CA257B7A00190682&0&March%202013&30.05.2013&Latest"
+    capexT11a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&56250011a.xls&5625.0&Time%20Series%20Spreadsheet&A2D9054BC7CA62B3CA257B7A0019072D&0&March%202013&30.05.2013&Latest"
+    capexT11b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&56250011b.xls&5625.0&Time%20Series%20Spreadsheet&66A4EE2B1EF6C082CA257B7A001907C9&0&March%202013&30.05.2013&Latest"
+    capexT12a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&56250012a.xls&5625.0&Time%20Series%20Spreadsheet&12347313402139CACA257B7A00190862&0&March%202013&30.05.2013&Latest"
+    capexT12b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&56250012b.xls&5625.0&Time%20Series%20Spreadsheet&0449CA64CA305A0ECA257B7A001908FE&0&March%202013&30.05.2013&Latest"
+# }}}
 
-    # {{{ get data
+# {{{ get data
     cxT1a <- readABS(capexT1a)
     names(cxT1a) <- c(
                       'min_BnS_nom_nsa','manu_BnS_nom_nsa', 'othr_BnS_nom_nsa', 'all_BnS_nom_nsa',
@@ -235,7 +240,9 @@ if (getWeb)
                        'all_Ttl_e1RR', 'all_Ttl_e2RR', 'all_Ttl_e3RR', 'all_Ttl_e4RR',
                        'all_Ttl_e5RR', 'all_Ttl_e6RR', 'all_Ttl_e7RR'
                       )
-    # }}}
+# }}}
+
+    # save(, file = file.path(dataPATH, "capexData.rdata"))
 
 } else {
     load("~/data/aud/trade/tradeXByDest.RData")
