@@ -1,3 +1,7 @@
+# set up environment
+rm(list=ls()); gc()
+Sys.setenv(TZ = 'UTC')
+#
 require(ggplot2)
 require(reshape2)
 require(xts)
@@ -12,7 +16,58 @@ dataPATH <- file.path(projectPATH, "data")
 plotPATH <- file.path(projectPATH, "Rpics")
 # }}}
 
-load(file.path(dataPATH, 'usCPI.rdata'))
+# {{{ get dallas fed TM PCE
+getDF = TRUE
+
+if(getDF)
+{
+    # get trimmed mean PCE data -- from the Dallas Fed
+    TMpceURL <- "http://www.dallasfed.org/assets/documents/research/pce/pce_hist.xls"
+    TMpce_df <- read.xls(TMpceURL, skip=2, as.is=TRUE)
+    names(TMpce_df) <- c('data', 'AR1m', 'AR6m', 'AR12m')
+
+    options(warn=-1)
+    TMpce_df[,(2:ncol(TMpce_df))] <- sapply(TMpce_df[,(2:(ncol(TMpce_df)))], as.numeric)
+    options(warn=0)
+
+    tt <- as.Date(paste("01-", TMpce_df[,1], sep = ""), format = "%d-%b-%y")
+    xmd <- xts(TMpce_df[,-c(1)], order.by=tt)
+    xmd$AR3m <- SMA(xmd$AR1m, n=3)
+
+    save(xmd, file = file.path(dataPATH, "US_tmPCE.rdata"))
+} else {
+    load(file.path(dataPATH, "US_tmPCE.rdata"))
+}
+# }}}
+
+# {{{ get data from Clevaland Fed
+
+getCF = TRUE
+
+# the URLs ...
+if (getCF)
+{
+    CF_cpi <- "http://www.clevelandfed.org/research/inflation/cfincludes/cpi.xls"
+    CF_ccpi <- "http://www.clevelandfed.org/research/inflation/cfincludes/core.xls"
+    CF_mcpi <- "http://www.clevelandfed.org/research/inflation/cfincludes/mcpi_revised.xls"
+    CF_tmcpi <- "http://www.clevelandfed.org/research/inflation/cfincludes/trim_revised.xls"
+
+    CF_cpi_x <- readClvFed(CF_cpi, LineSkip = 1)
+    names(CF_cpi_x) <- c('index', 'AR1m')
+    CF_ccpi_x <- readClvFed(CF_ccpi)
+    names(CF_ccpi_x) <- c('index', 'AR1m')
+    CF_mcpi_x <- readClvFed(CF_mcpi, LineSkip = 1, dateType = 'Y-b-d')
+    names(CF_mcpi_x) <- c('MoMppt', 'm1AR')
+    CF_tmcpi_x <- readClvFed(CF_tmcpi, LineSkip = 1, dateType = 'Y-b-d')[, 1:2]
+    names(CF_tmcpi_x) <- c('MoMppt', 'm1AR')
+
+    save(CF_cpi_x, CF_ccpi_x, CF_mcpi_x, CF_tmcpi_x, file = file.path(dataPATH, 'US_CPI.rdata'))
+
+} else {
+    load(file.path(dataPATH, 'US_CPI.rdata'))
+}
+
+# }}}
 
 usInflx <- xtsF(dd)
 
