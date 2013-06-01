@@ -2,6 +2,11 @@
 
 # {{{ general helpers
 
+pckReq <- function(pckName)
+{
+    if(!paste0('package:', pckName) %in% search()) require(pckName, character.only=TRUE)
+}
+
 xtsF <- function(x)
 {
 # add a smart date switch: http://stackoverflow.com/questions/6194285/dealing-with-messy-dates/7975560#7975560
@@ -19,11 +24,19 @@ x2df <- function(XTS) {data.frame('date' = index(XTS), data.frame(coredata(XTS))
 # read ABS sheet function
 readABS <- function(XLS, SHEET = 'Data1', LineSkip = 9)
 {
+    pckReq('gdata')
     dat <- read.xls(XLS, sheet = SHEET, as.is=TRUE, skip = LineSkip)
     dat[,1] <- XLdate(dat[,1])
     names(dat)[1] <- 'date'
     return(xtsF(dat))
 }
+
+readClvFed <- function(URL, SHEET = 'Sheet1', LineSkip = 1)
+{
+    pckReq('gdata')
+    dat <- read.xls(URL, sheet = SHEET, as.is=TRUE, skip = LineSkip)
+}
+
 
 # }}}
 
@@ -62,9 +75,22 @@ dateSwitch <- function(index, lastDay = TRUE, adv = 0)
     }
 }
 
-XLdate <- function(Xd)
+XLdate <- function(Xd, type = 'b-Y')
 {
-    Xd <- as.Date(paste0(substr(Xd, 5, 9), "-", substr(Xd, 1, 3), "-01"), format = "%Y-%b-%d")
+    switch(type,
+        'b-Y' = as.Date(paste0(substr(Xd, 5, 9), "-", substr(Xd, 1, 3), "-01"), format = "%Y-%b-%d"),
+        'b-y' = as.Date(paste0(year1900(substr(Xd, 5, 6)), "-", substr(Xd, 1, 3), "-01"),
+                        format = "%Y-%b-%d"),
+        'Y-b' = as.Date(paste0(substr(Xd, 1, 3), "-", substr(Xd, 5, 9), "-01"), format = "%Y-%b-%d")
+        )
+}
+
+year1900 <- function(dd_y, yrFlip = 50)
+{
+    dd_y <- as.numeric(dd_y)
+    dd_y[dd_y > yrFlip] <- dd_y[dd_y > yrFlip] + 1900
+    dd_y[dd_y < yrFlip] <- dd_y[dd_y < yrFlip] + 2000
+    return(dd_y)
 }
 
 # end date stuff }}}
