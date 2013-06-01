@@ -17,8 +17,10 @@ dataPATH <- file.path(projectPATH, "data")
 plotPATH <- file.path(projectPATH, "Rpics")
 # }}}
 
-# {{{ get dallas fed TM PCE
 getDF = TRUE
+getCF = TRUE
+
+# {{{ get dallas fed TM PCE
 
 if(getDF)
 {
@@ -40,8 +42,6 @@ if(getDF)
     load(file.path(dataPATH, "US_tmPCE.rdata"))
 }
 # }}}
-
-getCF = TRUE
 
 # {{{ get data from Clevaland Fed
 
@@ -77,12 +77,14 @@ if (getCF)
 
 # }}}
 
+# {{{ data transform
 usInflx <- merge(CPI_AR1, xmd$pce_AR1m)
 names(usInflx) <- c('CPI', 'cCPI', 'mCPI', 'tmCPI', 'tmPCE')
 
 usInflx_3m <- rollapplyr(usInflx, 3, colMeans)
 usInflx_6m <- rollapplyr(usInflx, 6, colMeans)
 usInflx_12m <- rollapplyr(usInflx, 12, colMeans)
+# }}}
 
 # {{{ Plots
 gp_3minfl <- ggplot(data = meltx(usInflx_3m['2001::']),
