@@ -27,6 +27,7 @@ if(getABS) {
     pmc_d <- readABS(pmcT1)
     names(pmc_d) <- c('pmc_nsw', 'pmc_vic', 'pmc_qld', 'pmc_sa', 'pmc_wa', 'pmc_tas',
                       'pmc_nt', 'pmc_act', 'pmc_aus')
+    pmc_d <- pmc_d[, c(9, 1:8)]
 
     save(pmc_d, file = file.path(dataPATH, "pmc.rdata"))
 } else {
@@ -35,3 +36,49 @@ if(getABS) {
 
 pmc_SA <- mj_SAmat_m(pmc_d)
 pmc_trend <- mj_SAmat_m(pmc_d, outGet = 'trend')
+
+
+gg_pmcAuNV <- ggplot() +
+            geom_line(data = subset(meltx(pmc_trend), variable %in% c('pmc_aus', 'pmc_nsw', 'pmc_vic')),
+                      aes(x = date, y = value, fill = variable), size = 1.5) +
+                      theme_grey() +
+                      facet_grid(variable ~ ., scale = 'free_y') +
+                      labs(y = NULL, x = NULL) +
+            geom_line(data = subset(meltx(pmc_SA), variable %in% c('pmc_aus', 'pmc_nsw', 'pmc_vic')),
+                      aes(x = date, y = value, fill = variable), size = 0.5, color = 'red') +
+                      theme_grey() +
+                      facet_grid(variable ~ ., scale = 'free_y') +
+                      labs(title = "Pre-Mix Concrete: '000 m^3")
+png(file.path(plotPATH, "pmc_AuNV.png"))
+grid.arrange(gg_pmcAuNV, sub = textGrob('www.ricardianambivalence.com'))
+dev.off()
+
+gg_pmcQWnt <- ggplot() +
+            geom_line(data = subset(meltx(pmc_trend), variable %in% c('pmc_qld', 'pmc_nt', 'pmc_wa')),
+                      aes(x = date, y = value, fill = variable), size = 1.5) +
+                      theme_grey() +
+                      facet_grid(variable ~ ., scale = 'free_y') +
+                      labs(y = NULL, x = NULL) +
+            geom_line(data = subset(meltx(pmc_SA), variable %in% c('pmc_qld', 'pmc_nt', 'pmc_wa')),
+                      aes(x = date, y = value, fill = variable), size = 0.5, color = 'red') +
+                      theme_grey() +
+                      facet_grid(variable ~ ., scale = 'free_y') +
+                      labs(title = "Pre-Mix Concrete: '000 m^3")
+png(file.path(plotPATH, "pmc_QWnt.png"))
+grid.arrange(gg_pmcQWnt, sub = textGrob('www.ricardianambivalence.com'))
+dev.off()
+
+gg_pmcSTact <- ggplot() +
+            geom_line(data = subset(meltx(pmc_trend), variable %in% c('pmc_sa', 'pmc_tas', 'pmc_act')),
+                      aes(x = date, y = value, fill = variable), size = 1.5) +
+                      theme_grey() +
+                      facet_grid(variable ~ ., scale = 'free_y') +
+                      labs(y = NULL, x = NULL) +
+            geom_line(data = subset(meltx(pmc_SA), variable %in% c('pmc_sa', 'pmc_tas', 'pmc_act')),
+                      aes(x = date, y = value, fill = variable), size = 0.5, color = 'red') +
+                      theme_grey() +
+                      facet_grid(variable ~ ., scale = 'free_y') +
+                      labs(title = "Pre-Mix Concrete: '000 m^3")
+png(file.path(plotPATH, "pmc_STact.png"))
+grid.arrange(gg_pmcSTact, sub = textGrob('www.ricardianambivalence.com'))
+dev.off()
