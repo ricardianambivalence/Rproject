@@ -395,12 +395,12 @@ RegPredFrame$combo_EPM_e7 <- apply(RegPredFrame[, c(14, 35, 56)], 1, sum)
 
 # }}} close data analysis
 
-
 # {{{ plots
 # percent difference between regression adj and actual
 plot(100*(RegPredFrame[,6] / cxT12a[,7] - 1), type='o', pch=19, las=2, major.format="%Y")
 
 # plot of mining BnS by forecast vintage
+png(file.path(plotPATH, "min_BnS.png"))
 plot(as.numeric(RegPredFrame['20140601', 1:7]/1e3), type='l',
      ylim = c(20, 120), col = 1, lwd=3,
      xlab = "est number", ylab = "AUDbn", las=1,
@@ -419,8 +419,12 @@ lines(as.numeric(RegPredFrame['20080601', 1:7]/1e3), col = 8)
 lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 7]/1e3)), col = 8, type = 'o', pch=4)
 legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
        col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: ABS', side=1, line=4, adj=0)
+dev.off()
 
 # plot of mining EPM by forecast vintage
+png(file.path(plotPATH, "min_EPM.png"))
 plot(as.numeric(RegPredFrame['20140601', 8:14]/1e3), type='l',
      ylim = c(5, 20), col = 1, lwd=3,
      xlab = "est number", ylab = "AUDbn", las=1,
@@ -439,8 +443,12 @@ lines(as.numeric(RegPredFrame['20080601', 8:14]/1e3), col = 8)
 lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 14]/1e3)), col = 8, type = 'o', pch=4)
 legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
        col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: ABS', side=1, line=4, adj=0)
+dev.off()
 
 # plot of manu BnS by forecast vintage
+png(file.path(plotPATH, "manu_BnS.png"))
 plot(as.numeric(RegPredFrame['20140601', 22:28]/1e3), type='l',
      ylim = c(2, 8), col = 1, lwd=3,
      xlab = "est number", ylab = "AUDbn", las=1,
@@ -459,8 +467,12 @@ lines(as.numeric(RegPredFrame['20080601', 22:28]/1e3), col = 8)
 lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 28]/1e3)), col = 8, type = 'o', pch=4)
 legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
        col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: ABS', side=1, line=4, adj=0)
+dev.off()
 
 # plot of manu EPM by forecast vintage
+png(file.path(plotPATH, "manu_EPM.png"))
 plot(as.numeric(RegPredFrame['20140601', 29:35]/1e3), type='l',
      ylim = c(6, 10), col = 1, lwd=3,
      xlab = "est number", ylab = "AUDbn", las=1,
@@ -479,8 +491,12 @@ lines(as.numeric(RegPredFrame['20080601', 29:35]/1e3), col = 8)
 lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 35]/1e3)), col = 8, type = 'o', pch=4)
 legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
        col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: ABS', side=1, line=4, adj=0)
+dev.off()
 
 # plot of other BnS by forecast vintage
+png(file.path(plotPATH, "other_BnS.png"))
 plot(as.numeric(RegPredFrame['20140601', 43:49]/1e3), type='l',
      ylim = c(15, 30), col = 1, lwd=3,
      xlab = "est number", ylab = "AUDbn", las=1,
@@ -499,8 +515,12 @@ lines(as.numeric(RegPredFrame['20080601', 43:49]/1e3), col = 8)
 lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 49]/1e3)), col = 8, type = 'o', pch=4)
 legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
        col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: ABS', side=1, line=4, adj=0)
+dev.off()
 
 # plot of other EPM by forecast vintage
+png(file.path(plotPATH, "other_EPM.png"))
 plot(as.numeric(RegPredFrame['20140601', 50:56]/1e3), type='l',
      ylim = c(30, 45), col = 1, lwd=3,
      xlab = "est number", ylab = "AUDbn", las=1,
@@ -519,13 +539,17 @@ lines(as.numeric(RegPredFrame['20080601', 50:56]/1e3), col = 8)
 lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 56]/1e3)), col = 8, type = 'o', pch=4)
 legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
        col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: ABS', side=1, line=4, adj=0)
+dev.off()
 
 
 # plot of other BnS by forecast vintage
+png(file.path(plotPATH, "combo_BnS.png"))
 plot(as.numeric(RegPredFrame['20140601', 92:98]/1e3), type='l',
      ylim = c(40, 140), col = 1, lwd=3,
      xlab = "est number", ylab = "AUDbn", las=1,
-     main = "Other Buildings and Structures (Reg RR adj)")
+     main = "Total (all sectors) Buildings and Structures (Reg RR adj)")
 lines(as.numeric(RegPredFrame['20130601', 92:98]/1e3), col = 2, lwd=2)
 lines(c(rep(NA, 6), as.numeric(RegPredFrame['20130601', 98]/1e3)), col = 2, type = 'o', pch = 4)
 lines(as.numeric(RegPredFrame['20120601', 92:98]/1e3), col = 3)
@@ -540,8 +564,12 @@ lines(as.numeric(RegPredFrame['20080601', 92:98]/1e3), col = 8)
 lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 98]/1e3)), col = 8, type = 'o', pch=4)
 legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
        col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: ABS', side=1, line=4, adj=0)
+dev.off()
 
 # plot of other EPM by forecast vintage
+png(file.path(plotPATH, "combo_EPM.png"))
 plot(as.numeric(RegPredFrame['20140601', 99:105]/1e3), type='l',
      ylim = c(45, 65), col = 1, lwd=3,
      xlab = "est number", ylab = "AUDbn", las=1,
@@ -560,8 +588,12 @@ lines(as.numeric(RegPredFrame['20080601', 99:105]/1e3), col = 8)
 lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 105]/1e3)), col = 8, type = 'o', pch=4)
 legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
        col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: ABS', side=1, line=4, adj=0)
+dev.off()
 
 # plot of combo all capex by forecast vintage
+png(file.path(plotPATH, "combo_Ttl.png"))
 plot(as.numeric(RegPredFrame['20140601', 85:91]/1e3), type='l',
      ylim = c(80, 200), col = 1, lwd=3,
      xlab = "est number", ylab = "AUDbn", las=1,
@@ -580,4 +612,8 @@ lines(as.numeric(RegPredFrame['20080601', 85:91]/1e3), col = 8)
 lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 91]/1e3)), col = 8, type = 'o', pch=4)
 legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
        col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: ABS', side=1, line=4, adj=0)
+dev.off()
+
 # }}}
