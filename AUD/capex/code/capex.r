@@ -27,13 +27,12 @@ RApal_back5 <- brewer.pal(10, "RdYlBu")[6:10]
 RAPal_5 <- brewer.pal(5, 'RdYlBu')
 # }}}
 
-getABS <- TRUE # new data, or from the store?
+getABS <- FALSE # new data, or from the store?
 
-# {{{ get data
+# {{{ data stuff
 
 ## download from web and format or get from store?
-if (getABS)
-{
+if (getABS) {
 # {{{ file paths -- html addy
     capexT1a <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625001a.xls&5625.0&Time%20Series%20Spreadsheet&D9D8A1CB23C5992FCA257B7A0018F0AB&0&March%202013&30.05.2013&Latest"
     capexT1b <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5625001a.xls&5625.0&Time%20Series%20Spreadsheet&D9D8A1CB23C5992FCA257B7A0018F0AB&0&March%202013&30.05.2013&Latest"
@@ -241,55 +240,99 @@ if (getABS)
                        'all_Ttl_e1RR', 'all_Ttl_e2RR', 'all_Ttl_e3RR', 'all_Ttl_e4RR',
                        'all_Ttl_e5RR', 'all_Ttl_e6RR', 'all_Ttl_e7RR'
                       )
-# }}}
+# }}} close get data
 
     save(cxT1a, cxT1b, cxT1c, cxT1e, cxT1f, cxT2a, cxT2b, cxT2c, cxT2e, cxT2f,
          cxT3a, cxT3b, cxT12a, cxT12b,
          file = file.path(dataPATH, "capexData.rdata"))
 
 } else {
-    load(file.path(dataPATHm "capexData.rdata"))
+    load(file.path(dataPATH, "capexData.rdata"))
 }
 
 # }}}
 
 # {{{ data analysis
 
-# split the data in prep for analysis
+# {{{ realisation ratio stuff
+RR_calc <- cxT12a # make more accurate RRatios
+RR_calc[, seq(7, 84, 7)] <- 1
 
-min_BnS_exp <- cxT12a[, c(1:7)]
-min_EPM_exp <- cxT12a[, c(8:14)]
-min_Ttl_exp <- cxT12a[, c(15:21)]
-manu_BnS_exp <- cxT12a[, c(22:28)]
-manu_EPM_exp <- cxT12a[, c(29:35)]
-manu_Ttl_exp <- cxT12a[, c(36:42)]
-othr_BnS_exp <- cxT12a[, c(43:49)]
-othr_EPM_exp <- cxT12a[, c(50:56)]
-othr_Ttl_exp <- cxT12a[, c(57:63)]
-all_BnS_exp <- cxT12a[, c(64:70)]
-all_EPM_exp <- cxT12a[, c(71:77)]
-all_Ttl_exp <- cxT12a[, c(78:84)]
+for (i in c(1:6, 8:13, 15:20, 22:27, 29:34, 36:41, 43:48, 50:55, 57:62, 64:69, 71:76, 78:83)) {
+    RR_calc[,i] <- cxT12a[, (i %/% 7 + 1)*7] / cxT12a[, i]
+}
 
+RR5y <- rollapplyr(RR_calc, 5, colMeans)
+
+RR5y_PredFrame <- cxT12a
+est_1n2 <- sort(c(seq(1, 78, 7), seq(2, 79, 7)))
+est_3t6 <- sort(c(seq(3, 80, 7), seq(4, 81, 7), seq(5, 82, 7), seq(6, 82, 7)))
+RR5y_PredFrame[,est_1n2] <- RR5y_PredFrame[,est_1n2] * lag(RR5y[, est_1n2], 2)
+RR5y_PredFrame[,est_3t6] <- RR5y_PredFrame[,est_3t6] * lag(RR5y[, est_3t6], 1)
+
+# {{{ combine RR5y_PredFrame forecasts
+RR5y_PredFrame$combo_Ttl_e1 <- apply(RR5y_PredFrame[, c(1, 8, 22, 29, 43, 50)], 1, sum)
+RR5y_PredFrame$combo_Ttl_e2 <- apply(RR5y_PredFrame[, c(2, 9, 23, 30, 44, 51)], 1, sum)
+RR5y_PredFrame$combo_Ttl_e3 <- apply(RR5y_PredFrame[, c(3, 10, 24, 31, 45, 52)], 1, sum)
+RR5y_PredFrame$combo_Ttl_e4 <- apply(RR5y_PredFrame[, c(4, 11, 25, 32, 46, 53)], 1, sum)
+RR5y_PredFrame$combo_Ttl_e5 <- apply(RR5y_PredFrame[, c(5, 12, 26, 33, 47, 54)], 1, sum)
+RR5y_PredFrame$combo_Ttl_e6 <- apply(RR5y_PredFrame[, c(6, 13, 27, 34, 48, 55)], 1, sum)
+RR5y_PredFrame$combo_Ttl_e7 <- apply(RR5y_PredFrame[, c(7, 14, 28, 35, 49, 56)], 1, sum)
+#
+RR5y_PredFrame$combo_BnS_e1 <- apply(RR5y_PredFrame[, c(1, 22, 43)], 1, sum)
+RR5y_PredFrame$combo_BnS_e2 <- apply(RR5y_PredFrame[, c(2, 23, 44)], 1, sum)
+RR5y_PredFrame$combo_BnS_e3 <- apply(RR5y_PredFrame[, c(3, 24, 45)], 1, sum)
+RR5y_PredFrame$combo_BnS_e4 <- apply(RR5y_PredFrame[, c(4, 25, 46)], 1, sum)
+RR5y_PredFrame$combo_BnS_e5 <- apply(RR5y_PredFrame[, c(5, 26, 47)], 1, sum)
+RR5y_PredFrame$combo_BnS_e6 <- apply(RR5y_PredFrame[, c(6, 27, 48)], 1, sum)
+RR5y_PredFrame$combo_BnS_e7 <- apply(RR5y_PredFrame[, c(7, 28, 49)], 1, sum)
+#
+RR5y_PredFrame$combo_EPM_e1 <- apply(RR5y_PredFrame[, c(8, 29, 50)], 1, sum)
+RR5y_PredFrame$combo_EPM_e2 <- apply(RR5y_PredFrame[, c(9, 30, 51)], 1, sum)
+RR5y_PredFrame$combo_EPM_e3 <- apply(RR5y_PredFrame[, c(10, 31, 52)], 1, sum)
+RR5y_PredFrame$combo_EPM_e4 <- apply(RR5y_PredFrame[, c(11, 32, 53)], 1, sum)
+RR5y_PredFrame$combo_EPM_e5 <- apply(RR5y_PredFrame[, c(12, 33, 54)], 1, sum)
+RR5y_PredFrame$combo_EPM_e6 <- apply(RR5y_PredFrame[, c(13, 34, 55)], 1, sum)
+RR5y_PredFrame$combo_EPM_e7 <- apply(RR5y_PredFrame[, c(14, 35, 56)], 1, sum)
+# }}} close combine forecasts
+
+RRprior_PredFrame <- cxT12a
+RRprior_PredFrame[, est_1n2] <- RRprior_PredFrame[, est_1n2] * lag(RR_calc[, est_1n2], 2)
+RRprior_PredFrame[, est_3t6] <- RRprior_PredFrame[, est_3t6] * lag(RR_calc[, est_3t6], 1)
+
+# {{{ combine RRprior_PredFrame forecasts
+RRprior_PredFrame$combo_Ttl_e1 <- apply(RRprior_PredFrame[, c(1, 8, 22, 29, 43, 50)], 1, sum)
+RRprior_PredFrame$combo_Ttl_e2 <- apply(RRprior_PredFrame[, c(2, 9, 23, 30, 44, 51)], 1, sum)
+RRprior_PredFrame$combo_Ttl_e3 <- apply(RRprior_PredFrame[, c(3, 10, 24, 31, 45, 52)], 1, sum)
+RRprior_PredFrame$combo_Ttl_e4 <- apply(RRprior_PredFrame[, c(4, 11, 25, 32, 46, 53)], 1, sum)
+RRprior_PredFrame$combo_Ttl_e5 <- apply(RRprior_PredFrame[, c(5, 12, 26, 33, 47, 54)], 1, sum)
+RRprior_PredFrame$combo_Ttl_e6 <- apply(RRprior_PredFrame[, c(6, 13, 27, 34, 48, 55)], 1, sum)
+RRprior_PredFrame$combo_Ttl_e7 <- apply(RRprior_PredFrame[, c(7, 14, 28, 35, 49, 56)], 1, sum)
+#
+RRprior_PredFrame$combo_BnS_e1 <- apply(RRprior_PredFrame[, c(1, 22, 43)], 1, sum)
+RRprior_PredFrame$combo_BnS_e2 <- apply(RRprior_PredFrame[, c(2, 23, 44)], 1, sum)
+RRprior_PredFrame$combo_BnS_e3 <- apply(RRprior_PredFrame[, c(3, 24, 45)], 1, sum)
+RRprior_PredFrame$combo_BnS_e4 <- apply(RRprior_PredFrame[, c(4, 25, 46)], 1, sum)
+RRprior_PredFrame$combo_BnS_e5 <- apply(RRprior_PredFrame[, c(5, 26, 47)], 1, sum)
+RRprior_PredFrame$combo_BnS_e6 <- apply(RRprior_PredFrame[, c(6, 27, 48)], 1, sum)
+RRprior_PredFrame$combo_BnS_e7 <- apply(RRprior_PredFrame[, c(7, 28, 49)], 1, sum)
+#
+RRprior_PredFrame$combo_EPM_e1 <- apply(RRprior_PredFrame[, c(8, 29, 50)], 1, sum)
+RRprior_PredFrame$combo_EPM_e2 <- apply(RRprior_PredFrame[, c(9, 30, 51)], 1, sum)
+RRprior_PredFrame$combo_EPM_e3 <- apply(RRprior_PredFrame[, c(10, 31, 52)], 1, sum)
+RRprior_PredFrame$combo_EPM_e4 <- apply(RRprior_PredFrame[, c(11, 32, 53)], 1, sum)
+RRprior_PredFrame$combo_EPM_e5 <- apply(RRprior_PredFrame[, c(12, 33, 54)], 1, sum)
+RRprior_PredFrame$combo_EPM_e6 <- apply(RRprior_PredFrame[, c(13, 34, 55)], 1, sum)
+RRprior_PredFrame$combo_EPM_e7 <- apply(RRprior_PredFrame[, c(14, 35, 56)], 1, sum)
+# }}} close combo of forecasts
+
+# }}} close realisation ratio stuff
+
+# {{{ regression adjustment
 modList = list()
 sector = 'all'
 
 getSector <- function(code) {
-    sector <- switch(as.character(code),
-                     "7" = "min_BnS",
-                     "14" = "min_EPM",
-                     "21" = "min_Ttl",
-                     "28" = "manu_BnS",
-                     "35" = "manu_EPM",
-                     "42" = "manu_Ttl",
-                     "49" = "othr_BnS",
-                     "56" = "othr_EPM",
-                     "63" = "othr_Ttl",
-                     "70" = "all_BnS",
-                     "77" = "all_EPM",
-                     "84" = "all_Ttl")
-}
-
-getSector2 <- function(code) {
     sector <- switch(as.character(code),
                      "0" = "min_BnS",
                      "1" = "min_EPM",
@@ -307,18 +350,234 @@ getSector2 <- function(code) {
 
 for (i in seq(7, 84, 7)) {
     for (j in 1:6) {
-        sector <- getSector(i)
+        sector <- getSector(i %/% 7 - 1)
         modList[[sector]][[j]] <- lm(log(cxT12a[, i]) ~ log(cxT12a[,(i-7+j)]))
     }
 }
 
-predFrame <- cxT12a
+RegPredFrame <- cxT12a
 for (i in c(1:6, 8:13, 15:20, 22:27, 29:34, 36:41, 43:48, 50:55, 57:62, 64:69, 71:76, 78:83)) {
-    sector <- getSector2(i %/% 7)
+    sector <- getSector(i %/% 7)
     est <- i %% 7
-    predFrame[,i] <- exp(modList[[sector]][[est]]$coefficients[1] +
+    RegPredFrame[,i] <- exp(modList[[sector]][[est]]$coefficients[1] +
                         modList[[sector]][[est]]$coefficients[2] * log(cxT12a[,i]))
 }
 
-plot(100*(predFrame[,3] / cxT12a[,7] - 1), type='o', pch=19, las=1)
+# {{{ combine forecasts
+RegPredFrame$combo_Ttl_e1 <- apply(RegPredFrame[, c(1, 8, 22, 29, 43, 50)], 1, sum)
+RegPredFrame$combo_Ttl_e2 <- apply(RegPredFrame[, c(2, 9, 23, 30, 44, 51)], 1, sum)
+RegPredFrame$combo_Ttl_e3 <- apply(RegPredFrame[, c(3, 10, 24, 31, 45, 52)], 1, sum)
+RegPredFrame$combo_Ttl_e4 <- apply(RegPredFrame[, c(4, 11, 25, 32, 46, 53)], 1, sum)
+RegPredFrame$combo_Ttl_e5 <- apply(RegPredFrame[, c(5, 12, 26, 33, 47, 54)], 1, sum)
+RegPredFrame$combo_Ttl_e6 <- apply(RegPredFrame[, c(6, 13, 27, 34, 48, 55)], 1, sum)
+RegPredFrame$combo_Ttl_e7 <- apply(RegPredFrame[, c(7, 14, 28, 35, 49, 56)], 1, sum)
+#
+RegPredFrame$combo_BnS_e1 <- apply(RegPredFrame[, c(1, 22, 43)], 1, sum)
+RegPredFrame$combo_BnS_e2 <- apply(RegPredFrame[, c(2, 23, 44)], 1, sum)
+RegPredFrame$combo_BnS_e3 <- apply(RegPredFrame[, c(3, 24, 45)], 1, sum)
+RegPredFrame$combo_BnS_e4 <- apply(RegPredFrame[, c(4, 25, 46)], 1, sum)
+RegPredFrame$combo_BnS_e5 <- apply(RegPredFrame[, c(5, 26, 47)], 1, sum)
+RegPredFrame$combo_BnS_e6 <- apply(RegPredFrame[, c(6, 27, 48)], 1, sum)
+RegPredFrame$combo_BnS_e7 <- apply(RegPredFrame[, c(7, 28, 49)], 1, sum)
+#
+RegPredFrame$combo_EPM_e1 <- apply(RegPredFrame[, c(8, 29, 50)], 1, sum)
+RegPredFrame$combo_EPM_e2 <- apply(RegPredFrame[, c(9, 30, 51)], 1, sum)
+RegPredFrame$combo_EPM_e3 <- apply(RegPredFrame[, c(10, 31, 52)], 1, sum)
+RegPredFrame$combo_EPM_e4 <- apply(RegPredFrame[, c(11, 32, 53)], 1, sum)
+RegPredFrame$combo_EPM_e5 <- apply(RegPredFrame[, c(12, 33, 54)], 1, sum)
+RegPredFrame$combo_EPM_e6 <- apply(RegPredFrame[, c(13, 34, 55)], 1, sum)
+RegPredFrame$combo_EPM_e7 <- apply(RegPredFrame[, c(14, 35, 56)], 1, sum)
+# }}} close combo of forecasts
 
+
+
+# }}} close reg adj
+
+# }}} close data analysis
+
+
+# {{{ plots
+# percent difference between regression adj and actual
+plot(100*(RegPredFrame[,6] / cxT12a[,7] - 1), type='o', pch=19, las=2, major.format="%Y")
+
+# plot of mining BnS by forecast vintage
+plot(as.numeric(RegPredFrame['20140601', 1:7]/1e3), type='l',
+     ylim = c(20, 120), col = 1, lwd=3,
+     xlab = "est number", ylab = "AUDbn", las=1,
+     main = "Mining Buildings and Structures (Reg RR adj)")
+lines(as.numeric(RegPredFrame['20130601', 1:7]/1e3), col = 2, lwd=2)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20130601', 7]/1e3)), col = 2, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20120601', 1:7]/1e3), col = 3)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20120601', 7]/1e3)), col = 3, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20110601', 1:7]/1e3), col = 4)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20110601', 7]/1e3)), col = 4, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20100601', 1:7]/1e3), col = 5)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20100601', 7]/1e3)), col = 5, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20090601', 1:7]/1e3), col = 6)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20090601', 7]/1e3)), col = 6, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20080601', 1:7]/1e3), col = 8)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 7]/1e3)), col = 8, type = 'o', pch=4)
+legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
+       col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+
+# plot of mining EPM by forecast vintage
+plot(as.numeric(RegPredFrame['20140601', 8:14]/1e3), type='l',
+     ylim = c(5, 20), col = 1, lwd=3,
+     xlab = "est number", ylab = "AUDbn", las=1,
+     main = "Mining Equip Plant and Machinery (Reg RR adj)")
+lines(as.numeric(RegPredFrame['20130601', 8:14]/1e3), col = 2, lwd=2)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20130601', 14]/1e3)), col = 2, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20120601', 8:14]/1e3), col = 3)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20120601', 14]/1e3)), col = 3, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20110601', 8:14]/1e3), col = 4)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20110601', 14]/1e3)), col = 4, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20100601', 8:14]/1e3), col = 5)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20100601', 14]/1e3)), col = 5, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20090601', 8:14]/1e3), col = 6)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20090601', 14]/1e3)), col = 6, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20080601', 8:14]/1e3), col = 8)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 14]/1e3)), col = 8, type = 'o', pch=4)
+legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
+       col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+
+# plot of manu BnS by forecast vintage
+plot(as.numeric(RegPredFrame['20140601', 22:28]/1e3), type='l',
+     ylim = c(2, 8), col = 1, lwd=3,
+     xlab = "est number", ylab = "AUDbn", las=1,
+     main = "Manu Buildings and Structures (Reg RR adj)")
+lines(as.numeric(RegPredFrame['20130601', 22:28]/1e3), col = 2, lwd=2)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20130601', 28]/1e3)), col = 2, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20120601', 22:28]/1e3), col = 3)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20120601', 28]/1e3)), col = 3, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20110601', 22:28]/1e3), col = 4)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20110601', 28]/1e3)), col = 4, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20100601', 22:28]/1e3), col = 5)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20100601', 28]/1e3)), col = 5, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20090601', 22:28]/1e3), col = 6)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20090601', 28]/1e3)), col = 6, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20080601', 22:28]/1e3), col = 8)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 28]/1e3)), col = 8, type = 'o', pch=4)
+legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
+       col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+
+# plot of manu EPM by forecast vintage
+plot(as.numeric(RegPredFrame['20140601', 29:35]/1e3), type='l',
+     ylim = c(6, 10), col = 1, lwd=3,
+     xlab = "est number", ylab = "AUDbn", las=1,
+     main = "Manu Equip Plant and Machinery (Reg RR adj)")
+lines(as.numeric(RegPredFrame['20130601', 29:35]/1e3), col = 2, lwd=2)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20130601', 35]/1e3)), col = 2, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20120601', 29:35]/1e3), col = 3)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20120601', 35]/1e3)), col = 3, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20110601', 29:35]/1e3), col = 4)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20110601', 35]/1e3)), col = 4, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20100601', 29:35]/1e3), col = 5)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20100601', 35]/1e3)), col = 5, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20090601', 29:35]/1e3), col = 6)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20090601', 35]/1e3)), col = 6, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20080601', 29:35]/1e3), col = 8)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 35]/1e3)), col = 8, type = 'o', pch=4)
+legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
+       col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+
+# plot of other BnS by forecast vintage
+plot(as.numeric(RegPredFrame['20140601', 43:49]/1e3), type='l',
+     ylim = c(15, 30), col = 1, lwd=3,
+     xlab = "est number", ylab = "AUDbn", las=1,
+     main = "Other Buildings and Structures (Reg RR adj)")
+lines(as.numeric(RegPredFrame['20130601', 43:49]/1e3), col = 2, lwd=2)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20130601', 49]/1e3)), col = 2, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20120601', 43:49]/1e3), col = 3)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20120601', 49]/1e3)), col = 3, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20110601', 43:49]/1e3), col = 4)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20110601', 49]/1e3)), col = 4, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20100601', 43:49]/1e3), col = 5)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20100601', 49]/1e3)), col = 5, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20090601', 43:49]/1e3), col = 6)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20090601', 49]/1e3)), col = 6, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20080601', 43:49]/1e3), col = 8)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 49]/1e3)), col = 8, type = 'o', pch=4)
+legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
+       col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+
+# plot of other EPM by forecast vintage
+plot(as.numeric(RegPredFrame['20140601', 50:56]/1e3), type='l',
+     ylim = c(30, 45), col = 1, lwd=3,
+     xlab = "est number", ylab = "AUDbn", las=1,
+     main = "Other Equip Plant and Machinery (Reg RR adj)")
+lines(as.numeric(RegPredFrame['20130601', 50:56]/1e3), col = 2, lwd=2)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20130601', 56]/1e3)), col = 2, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20120601', 50:56]/1e3), col = 3)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20120601', 56]/1e3)), col = 3, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20110601', 50:56]/1e3), col = 4)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20110601', 56]/1e3)), col = 4, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20100601', 50:56]/1e3), col = 5)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20100601', 56]/1e3)), col = 5, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20090601', 50:56]/1e3), col = 6)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20090601', 56]/1e3)), col = 6, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20080601', 50:56]/1e3), col = 8)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 56]/1e3)), col = 8, type = 'o', pch=4)
+legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
+       col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+
+
+# plot of other BnS by forecast vintage
+plot(as.numeric(RegPredFrame['20140601', 92:98]/1e3), type='l',
+     ylim = c(40, 140), col = 1, lwd=3,
+     xlab = "est number", ylab = "AUDbn", las=1,
+     main = "Other Buildings and Structures (Reg RR adj)")
+lines(as.numeric(RegPredFrame['20130601', 92:98]/1e3), col = 2, lwd=2)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20130601', 98]/1e3)), col = 2, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20120601', 92:98]/1e3), col = 3)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20120601', 98]/1e3)), col = 3, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20110601', 92:98]/1e3), col = 4)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20110601', 98]/1e3)), col = 4, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20100601', 92:98]/1e3), col = 5)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20100601', 98]/1e3)), col = 5, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20090601', 92:98]/1e3), col = 6)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20090601', 98]/1e3)), col = 6, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20080601', 92:98]/1e3), col = 8)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 98]/1e3)), col = 8, type = 'o', pch=4)
+legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
+       col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+
+# plot of other EPM by forecast vintage
+plot(as.numeric(RegPredFrame['20140601', 99:105]/1e3), type='l',
+     ylim = c(45, 65), col = 1, lwd=3,
+     xlab = "est number", ylab = "AUDbn", las=1,
+     main = "Total (all sectors) Equip Plant and Machinery (Reg RR adj)")
+lines(as.numeric(RegPredFrame['20130601', 99:105]/1e3), col = 2, lwd=2)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20130601', 105]/1e3)), col = 2, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20120601', 99:105]/1e3), col = 3)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20120601', 105]/1e3)), col = 3, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20110601', 99:105]/1e3), col = 4)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20110601', 105]/1e3)), col = 4, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20100601', 99:105]/1e3), col = 5)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20100601', 105]/1e3)), col = 5, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20090601', 99:105]/1e3), col = 6)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20090601', 105]/1e3)), col = 6, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20080601', 99:105]/1e3), col = 8)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 105]/1e3)), col = 8, type = 'o', pch=4)
+legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
+       col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+
+# plot of combo all capex by forecast vintage
+plot(as.numeric(RegPredFrame['20140601', 85:91]/1e3), type='l',
+     ylim = c(80, 200), col = 1, lwd=3,
+     xlab = "est number", ylab = "AUDbn", las=1,
+     main = "Total (all types, all sectors) Capex (Reg RR adj)")
+lines(as.numeric(RegPredFrame['20130601', 85:91]/1e3), col = 2, lwd=2)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20130601', 91]/1e3)), col = 2, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20120601', 85:91]/1e3), col = 3)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20120601', 91]/1e3)), col = 3, type = 'o', pch = 4)
+lines(as.numeric(RegPredFrame['20110601', 85:91]/1e3), col = 4)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20110601', 91]/1e3)), col = 4, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20100601', 85:91]/1e3), col = 5)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20100601', 91]/1e3)), col = 5, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20090601', 85:91]/1e3), col = 6)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20090601', 91]/1e3)), col = 6, type = 'o', pch=4)
+lines(as.numeric(RegPredFrame['20080601', 85:91]/1e3), col = 8)
+lines(c(rep(NA, 6), as.numeric(RegPredFrame['20080601', 91]/1e3)), col = 8, type = 'o', pch=4)
+legend('topright', c('FY14', 'FY13', 'FY12', 'FY11', 'FY10', 'FY09', 'FY08'),
+       col = c(1:6, 8), lwd = c(3, 2, rep(1, 5)))
+# }}}
