@@ -24,7 +24,6 @@ getABS <- TRUE
 
 if(getABS) {
     bIndT11 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&56760011.xls&5676.0&Time%20Series%20Spreadsheet&176FE7FE2E6E2E68CA257B7C0013187E&0&Mar%202013&03.06.2013&Latest"
-    bIndT11 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&56760015.xls&5676.0&Time%20Series%20Spreadsheet&79FD3B7461475845CA257B7C00131AE3&0&Mar%202013&03.06.2013&Latest"
     corpGOP<- readABS(bIndT11)
     names(corpGOP) <- c(
                        'mining_nsa', 'manu_nsa', 'utils_nsa', 'const_nsa', 'whole_nsa',
