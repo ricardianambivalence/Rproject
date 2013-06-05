@@ -13,7 +13,7 @@ source('~/R/Rhelpers/helperFuncts.r')
 source('~/R/Rhelpers/RAcolorpal.r')
 
 ## get from web or saved xls?
-getWeb <- TRUE
+getWeb <- FALSE
 
 ## PATH stuff
 projectPATH <- "~/R/AUD/gdp"
@@ -49,12 +49,13 @@ if (getWeb)
 
     gdpT2h <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5206002_expenditure_volume_measures.xls&5206.0&Time%20Series%20Spreadsheet&245A0ECAB8CE19F5CA257B8000131769&0&Mar%202013&05.06.2013&Latest"
     gdpT2 <- readABS(gdpT2h)[, c(1:41, 81:123)]
-    names(gdpT20) <- c(
+    names(gdpT2) <- c(
                        'ggovt_Cons_def_t', 'govt_Cons_nonDef_t', 'govt_Cons_nat_t',
                        'ggovt_Cons_stateLcl_t', 'ggovt_Cons_t', 'hh_Cons_t',
                        'allCons_t', 'prGFCF_dwlNew_t', 'prGFCF_dwlAlt_t', 'prGFCF_dwl_t',
                        'prGFCF_trans_t', 'prGFCF_nonDwl_newBld_t', 'prGFCF_nonDwl_eng_t',
-                       'prGFCF_nonDwl_t', 'prGFCF_MnEqp_t', 'prGFCF_bio_t', 'prGFCF_RnD_t',
+                       'prGFCF_nonDwl_t', 'prGFCF_MnEqp_new_t', 'prGFCF_MnEqp_t',
+                       'prGFCF_bio_t', 'prGFCF_RnD_t',
                        'pfGFCF_minEplor_t', 'prGFCF_comp_t', 'prGFCF_art_t', 'prGFCF_IP_t',
                        'prGFCF_bizInv_t', 'prGFCF_t', 'pbGFCF_Cth_t', 'pbGFCF_stateLcl_t',
                        'pbGFCF_pubCorp_t', 'pbGFCF_ggovt_Dfnc_t', 'pbGFCF_ggovt_nDef_t',
@@ -105,10 +106,17 @@ if (getWeb)
                        'nAveComp_qq_nsa', 'nNfTtlComp_qq_nsa', 'nNfAveComp_qq_nsa'
                        )
 
-    save(gdpT1, gdpT20, file = file.path(dataPATH, "gdpTables.RData"))
+    save(gdpT1, gdpT2, gdpT20, file = file.path(dataPATH, "gdpTables.RData"))
 
 } else {
     load("~/r/aud/gdp/data/gdpTables.RData")
 }
 
+gdpX <- gdpT2[, c('hh_Cons_sa', 'ggovt_Cons_sa', 'prGFCF_sa', 'pbGFCF_sa',
+                  'domD_sa', 'invntryD_sa', 'GNE_sa', 'X_sa', 'M_sa',
+                  'error_sa', 'gdp_sa')]
+
+gdpX_cont <- sweep(100*diff(gdpX), 1, lag(gdpX[, 11]), "/")
+gdpX_cont$NX_sa <- gdpX_cont$X_sa - gdpX_cont$M_sa
+gdpX_cont$govt_sa <- gdpX_cont$ggovt_Cons_sa + gdpX_cont$pbGFCF_sa
 
