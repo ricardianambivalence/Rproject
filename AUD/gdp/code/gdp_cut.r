@@ -121,12 +121,19 @@ gdp_B6 <- cbind(gdpX[, c('domD_sa', 'GNE_sa', 'gdp_sa')], gdpT1[, c('nGDP_sa', '
 gdp_B6 <- gdp_B6[, c(3:1, 6, 5, 4)]
 gdpX_lnD <- 100*diff(gdp_B6, log=TRUE)
 gdpX_lnD2qAR <- rollapplyr(gdpX_lnD, 2, colMeans) * 4
-gdpX_lnD4qAR <- rollapplyr(gdpX_lnD, 4, colMeans) * 4
+gdpX_lnD4qAR <- 100*(gdp_B6 / lag(gdp_B6, 4) - 1)
 
 
 gdpX_cont <- sweep(100*diff(gdpX), 1, lag(gdpX[, 11]), "/")
 gdpX_cont$NX_sa <- gdpX_cont$X_sa - gdpX_cont$M_sa
 gdpX_cont$govt_sa <- gdpX_cont$ggovt_Cons_sa + gdpX_cont$pbGFCF_sa
+
+# {{{ plots
+makeTwins(gdp_B6$domD_sa)
+makeTwins(gdp_B6$rNfGdp_sa)
+makeTwins(gdp_B6$rGDI_sa)
+makeTwins(gdp_B6$nGDP_sa)
+makeTwins(gdp_B6$gdp_sa)
 
 gp_gdpConts <- ggplot(meltx(gdpX_cont['2010::',
                             c('hh_Cons_sa', 'prGFCF_sa', 'invntryD_sa',
@@ -141,7 +148,6 @@ gp_gdpConts <- ggplot(meltx(gdpX_cont['2010::',
 png(file.path(plotPATH, "gdpConts.png"))
 grid.arrange(gp_gdpConts, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
-
 
 gp_gdpXsplit <- ggplot(meltx(gdpX_lnD2qAR['2000::', c('domD_sa', 'GNE_sa', 'gdp_sa')]),
                        aes(x = date, y = value, color = variable)) +
@@ -166,3 +172,5 @@ gp_gdpAltSplit <- ggplot(meltx(gdpX_lnD2qAR['2000::', c('rGDI_sa', 'nGDP_sa', 'r
 png(file.path(plotPATH, "gdpAltsplit.png"))
 grid.arrange(gp_gdpAltSplit, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
+
+# }}} end plots
