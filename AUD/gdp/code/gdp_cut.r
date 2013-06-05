@@ -13,7 +13,7 @@ source('~/R/Rhelpers/helperFuncts.r')
 source('~/R/Rhelpers/RAcolorpal.r')
 
 ## get from web or saved xls?
-getWeb <- FALSE
+getWeb <- TRUE
 
 ## PATH stuff
 projectPATH <- "~/R/AUD/gdp"
@@ -29,21 +29,21 @@ if (getWeb)
     names(gdpT1) <- c(
                       'gdp_t_qq', 'gdpPcap_t_qq', 'gvaMkt_t_qq', 'ndp_t_qq', 'rGDP_t_qq', 'rGNI_t_qq',
                       'rNNDI_t_qq_t', 'rNNDiPcap_t_qq', 'nGDP_t_qq', 'hrs_t_qq', 'hrsMkt_t_qq', 'gdpPhr_t_qq',
-                      'gvaPhr_mkt_t_qq', 'rUnitLabour_t_qq', 'rNfUnitLabour_t_qq', 'tot_t_qq', 'rGDP_t_qq',
-                      'rGDPcap_t_qq', 'rGVAmkt_t_qq', 'rNDP_t_qq', 'rGDI_t_qq', 'rGNI_t_qq', 'rNNDI_t_qq',
-                      'rNNDIcap_t_qq', 'rGDP_t_qq', 'rGDPcap_t_qq', 'nGNI_t', 'netSaving_t', 'hhSavingRate_t',
+                      'gvaPhr_mkt_t_qq', 'rUnitLabour_t_qq', 'rNfUnitLabour_t_qq', 'tot_t_qq', 'rGDP_t',
+                      'rGDPcap_t', 'rGVAmkt_t', 'rNDP_t', 'rGDI_t', 'rGNI_t', 'rNNDI_t',
+                      'rNNDIcap_t', 'nGDP_t', 'rGDPcap_t', 'nGNI_t', 'netSaving_t', 'hhSavingRate_t',
                       'hrsWorked_t', 'hrsWorkedMkt_t', 'gdpPhr_t', 'gvaPhrMkt_t', 'rULC_t', 'rnfULC_t', 'tot_t',
                       'gdp_sa_qq', 'gdpPcap_sa_qq', 'gvaMkt_sa_qq', 'ndp_sa_qq', 'rGDP_sa_qq', 'rGNI_sa_qq',
                       'rNNDI_sa_qq', 'rNNDiPcap_sa_qq', 'nGDP_sa_qq', 'hrs_sa_qq', 'hrsMkt_sa_qq', 'gdpPhr_sa_qq',
-                      'gvaPhr_mkt_sa_qq', 'rUnitLabour_sa_qq', 'rNfUnitLabour_sa_qq', 'tot_sa_qq', 'rGDP_sa_qq',
-                      'rGDPcap_sa_qq', 'rGVAmkt_sa_qq', 'rNDP_sa_qq', 'rGDI_sa_qq', 'rGNI_sa_qq', 'rNNDI_sa_qq',
-                      'rNNDIcap_sa_qq', 'rGDP_sa_qq', 'rGDPcap_sa_qq', 'nGNI_sa', 'netSaving_sa', 'hhSavingRate_sa',
+                      'gvaPhr_mkt_sa_qq', 'rUnitLabour_sa_qq', 'rNfUnitLabour_sa_qq', 'tot_sa_qq', 'rGDP_sa',
+                      'rGDPcap_sa', 'rGVAmkt_sa', 'rNDP_sa', 'rGDI_sa', 'rGNI_sa', 'rNNDI_sa',
+                      'rNNDIcap_sa', 'nGDP_sa', 'rGDPcap_sa', 'nGNI_sa', 'netSaving_sa', 'hhSavingRate_sa',
                       'hrsWorked_sa', 'hrsWorkedMkt_sa', 'gdpPhr_sa', 'gvaPhrMkt_sa', 'rULC_sa', 'rnfULC_sa', 'tot_sa',
                       'gdp_nsa_qq', 'gdpPcap_nsa_qq', 'gvaMkt_nsa_qq', 'ndp_nsa_qq', 'rGDP_nsa_qq', 'rGNI_nsa_qq',
                       'rNNDI_nsa_qq', 'rNNDiPcap_nsa_qq', 'nGDP_nsa_qq', 'hrs_nsa_qq', 'hrsMkt_nsa_qq',
                       'gdpPhr_nsa_qq', 'gvaPhr_mkt_nsa_qq', 'rUnitLabour_nsa_qq', 'rNfUnitLabour_nsa_qq', 'tot_nsa_qq',
-                      'rGDP_nsa_qq', 'rGDPcap_nsa_qq', 'rGVAmkt_nsa_qq', 'rNDP_nsa_qq', 'rGDI_nsa_qq', 'rGNI_nsa_qq',
-                      'rNNDI_nsa_qq', 'rNNDIcap_nsa_qq', 'rGDP_nsa_qq', 'rGDPcap_nsa_qq', 'nGNI_nsa', 'netSaving_nsa',
+                      'rGDP_nsa', 'rGDPcap_nsa', 'rGVAmkt_nsa', 'rNDP_nsa', 'rGDI_nsa', 'rGNI_nsa',
+                      'rNNDI_nsa', 'rNNDIcap_nsa', 'nGDP_nsa', 'rGDPcap_nsa', 'nGNI_nsa', 'netSaving_nsa',
                       'hhSavingRate_nsa', 'hrsWorked_nsa', 'hrsWorkedMkt_nsa', 'gdpPhr_nsa', 'gvaPhrMkt_nsa',
                       'rULC_nsa', 'rnfULC_nsa', 'tot_nsa')
 
@@ -116,7 +116,24 @@ gdpX <- gdpT2[, c('hh_Cons_sa', 'ggovt_Cons_sa', 'prGFCF_sa', 'pbGFCF_sa',
                   'domD_sa', 'invntryD_sa', 'GNE_sa', 'X_sa', 'M_sa',
                   'error_sa', 'gdp_sa')]
 
+gdp_B5 <- cbind(gdpX[, c('domD_sa', 'GNE_sa', 'gdp_sa')], gdpT1[, c('rGDI_sa')],
+                gdpT20[, c('rNfGdp_sa')])
+gdpX_lnD <- 100*diff(gdp_B5, log=TRUE)
+gdpX_lnD2qAR <- rollapplyr(gdpX_lnD, 2, colMeans) * 4
+gdpX_lnD4qAR <- rollapplyr(gdpX_lnD, 4, colMeans) * 4
+
+
 gdpX_cont <- sweep(100*diff(gdpX), 1, lag(gdpX[, 11]), "/")
 gdpX_cont$NX_sa <- gdpX_cont$X_sa - gdpX_cont$M_sa
 gdpX_cont$govt_sa <- gdpX_cont$ggovt_Cons_sa + gdpX_cont$pbGFCF_sa
 
+gp_gdpConts <- ggplot(meltx(gdpX_cont['2010::',
+                            c('hh_Cons_sa', 'prGFCF_sa', 'invntryD_sa',
+                              'govt_sa', 'NX_sa', 'gdp_sa')]),
+                      aes(x = date, y = value, fill = variable)) +
+                      facet_grid(variable ~ .) +
+                      labs(y = NULL, x = NULL) +
+                      labs(title = "Aus GDP -- contribution to qtrly growth (ppts)") +
+                      theme(legend.position = 'none') +
+                      theme(legend.title = element_blank()) +
+                    geom_bar(stat = 'identity', position = 'stack')
