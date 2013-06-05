@@ -31,10 +31,22 @@ readABS <- function(XLS, SHEET = 'Data1', LineSkip = 9)
     return(xtsF(dat))
 }
 
-readClvFed <- function(URL, SHEET = 'Sheet1', LineSkip = 1)
+readClvFed <- function(URL, SHEET = 'Sheet1', LineSkip = 0, dateType = 'b-y')
 {
     pckReq('gdata')
     dat <- read.xls(URL, sheet = SHEET, as.is=TRUE, skip = LineSkip)
+    dat[,1] <- XLdate(dat[,1], type = dateType)
+    names(dat)[1] <- 'date'
+    return(xtsF(dat))
+}
+
+dfxColScl <- function(dfrm, pos=1, idx = 100)
+{
+    scaledDF <- dfrm
+    for (i in 1:ncol(dfrm)) {
+        scaledDF[, i] <- dfrm[,i] / as.numeric(dfrm[pos, i]) * idx
+    }
+    return(scaledDF)
 }
 
 
@@ -44,6 +56,40 @@ readClvFed <- function(URL, SHEET = 'Sheet1', LineSkip = 1)
 
 vplayout <- function(x,y) viewport(layout.pos.row = x, layout.pos.col = y)
 
+pngMk <- function(pngName, Wwidth = 480, Hheight = 480)
+{
+    png(file.path(plotPATH, pngName), width = Wwidth, height = Hheight)
+}
+
+makeTwins <- function(Xx, title = 'twin') {
+    options(warn = -1)
+    png(file = file.path(plotPATH, paste0(title, '_', names(Xx), ".png")))
+    print(paste0(title, '_', names(Xx), ".png"))
+    #
+    Xx_yy <- 100*(Xx / lag(Xx, 4) - 1)
+    Xx_qq <- 100*(Xx / lag(Xx) - 1)
+    lineTitle <- paste0(names(Xx)[1], ": %YoY & QoQ%")
+    gp_RP_PXline <- ggplot(subset(meltx(Xx_yy), variable == names(Xx)[1]),
+                                 aes( x = date, y = value)) +
+                            theme_grey() +
+                            labs(y = NULL, x = NULL) +
+                            labs(title = lineTitle) +
+                            theme(legend.position = 'none') +
+                            theme(legend.title = element_blank()) +
+                            geom_line(color = 'blue')
+    #
+    gp_RP_diffbar <- ggplot(subset(meltx(Xx_qq), variable == names(Xx)),
+                                 aes( x = date, y = value)) +
+                            theme_grey() +
+                            labs(y = NULL, x = NULL) +
+                            theme(legend.position = 'none') +
+                            theme(legend.title = element_blank()) +
+                            geom_bar(stat = 'identity', color = 'red', fill = 'red')
+    #
+    grid.arrange(gp_RP_PXline, gp_RP_diffbar, heights = c(2/3, 1/3),
+                 sub = textGrob('www.ricardianambivalence.com'))
+    dev.off()
+}
 # }}}
 
 # {{{ pasteboard functions
@@ -78,10 +124,15 @@ dateSwitch <- function(index, lastDay = TRUE, adv = 0)
 XLdate <- function(Xd, type = 'b-Y')
 {
     switch(type,
-        'b-Y' = as.Date(paste0(substr(Xd, 5, 9), "-", substr(Xd, 1, 3), "-01"), format = "%Y-%b-%d"),
+        'b-Y' = as.Date(paste0(substr(Xd, 5, 9), "-", substr(Xd, 1, 3), "-01"),
+                        format = "%Y-%b-%d"),
         'b-y' = as.Date(paste0(year1900(substr(Xd, 5, 6)), "-", substr(Xd, 1, 3), "-01"),
                         format = "%Y-%b-%d"),
-        'Y-b' = as.Date(paste0(substr(Xd, 1, 3), "-", substr(Xd, 5, 9), "-01"), format = "%Y-%b-%d")
+        'Y-b' = as.Date(paste0(substr(Xd, 1, 3), "-", substr(Xd, 5, 9), "-01"),
+                        format = "%Y-%b-%d"),
+        'd1-m-y' = as.Date(paste0('01-', substr(Xd, 3, 4), '-', year1900(substr(Xd, 6,7))),
+                           format = "%d-%m-%Y"),
+        'Y-b-d' = as.Date(Xd)
         )
 }
 
@@ -96,7 +147,8 @@ year1900 <- function(dd_y, yrFlip = 50)
 # end date stuff }}}
 
 # {{{ SA a matrix
-mj_SAmat_m <- function(dfx, TO = 1){
+mj_SAmat_m <- function(dfx, TO = 1, outGet = 'adjust'){
+  pckReq('timsac')
   SAmat <- dfx
   for (i in 1:ncol(dfx)){
     begin <- min(which(!is.na(dfx[,i])))
@@ -108,7 +160,7 @@ mj_SAmat_m <- function(dfx, TO = 1){
                  span=12, shift=1, out=0, trend.order = TO, plot=FALSE)
     firstNA <- rep(NA, (begin-1))
     lastNA <- rep(NA, (nrow(dfx)-end))
-    SAmat[,i] <- c(firstNA, sa$adjust, lastNA)
+    SAmat[,i] <- c(firstNA, get(outGet, sa), lastNA)
   }
   return(SAmat)
 }
