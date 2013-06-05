@@ -116,9 +116,10 @@ gdpX <- gdpT2[, c('hh_Cons_sa', 'ggovt_Cons_sa', 'prGFCF_sa', 'pbGFCF_sa',
                   'domD_sa', 'invntryD_sa', 'GNE_sa', 'X_sa', 'M_sa',
                   'error_sa', 'gdp_sa')]
 
-gdp_B5 <- cbind(gdpX[, c('domD_sa', 'GNE_sa', 'gdp_sa')], gdpT1[, c('rGDI_sa')],
+gdp_B6 <- cbind(gdpX[, c('domD_sa', 'GNE_sa', 'gdp_sa')], gdpT1[, c('nGDP_sa', 'rGDI_sa')],
                 gdpT20[, c('rNfGdp_sa')])
-gdpX_lnD <- 100*diff(gdp_B5, log=TRUE)
+gdp_B6 <- gdp_B6[, c(3:1, 6, 5, 4)]
+gdpX_lnD <- 100*diff(gdp_B6, log=TRUE)
 gdpX_lnD2qAR <- rollapplyr(gdpX_lnD, 2, colMeans) * 4
 gdpX_lnD4qAR <- rollapplyr(gdpX_lnD, 4, colMeans) * 4
 
@@ -137,3 +138,31 @@ gp_gdpConts <- ggplot(meltx(gdpX_cont['2010::',
                       theme(legend.position = 'none') +
                       theme(legend.title = element_blank()) +
                     geom_bar(stat = 'identity', position = 'stack')
+png(file.path(plotPATH, "gdpConts.png"))
+grid.arrange(gp_gdpConts, sub = textGrob('www.ricardianambivalence.com'))
+dev.off()
+
+
+gp_gdpXsplit <- ggplot(meltx(gdpX_lnD2qAR['2000::', c('domD_sa', 'GNE_sa', 'gdp_sa')]),
+                       aes(x = date, y = value, color = variable)) +
+                    scale_colour_brewer(palette = 'Set1') +
+                    labs(y = NULL, x = NULL) +
+                    labs(title = "Aus GDP: Expenditure measures (2qAR)") +
+                    theme(legend.position = 'right') +
+                    theme(legend.title = element_blank()) +
+                    geom_line(size = 1.3)
+png(file.path(plotPATH, "gdpXsplit.png"))
+grid.arrange(gp_gdpXsplit, sub = textGrob('www.ricardianambivalence.com'))
+dev.off()
+
+gp_gdpAltSplit <- ggplot(meltx(gdpX_lnD2qAR['2000::', c('rGDI_sa', 'nGDP_sa', 'rNfGdp_sa')]),
+                       aes(x = date, y = value, color = variable)) +
+                    scale_colour_brewer(palette = 'Set1') +
+                    labs(y = NULL, x = NULL) +
+                    labs(title = "Aus GDP: Alternate measures (2qAR)") +
+                    theme(legend.position = 'top') +
+                    theme(legend.title = element_blank()) +
+                    geom_line(size = 1.3)
+png(file.path(plotPATH, "gdpAltsplit.png"))
+grid.arrange(gp_gdpAltSplit, sub = textGrob('www.ricardianambivalence.com'))
+dev.off()
