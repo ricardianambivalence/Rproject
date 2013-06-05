@@ -24,7 +24,7 @@ dataPATH <- file.path(projectPATH, "data")
 ## download from web and format or get from store?
 if (getWeb)
 {
-    gdpT1h <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5206001_key_aggregates.xls&5206.0&Time%20Series%20Spreadsheet&A246FCFF27391908CA257B2500116904&0&Dec%202012&06.03.2013&Latest"
+    gdpT1h <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5206001_key_aggregates.xls&5206.0&Time%20Series%20Spreadsheet&7634DF1824795503CA257B80001316BB&0&Mar%202013&05.06.2013&Latest"
     gdpT1 <- readABS(gdpT1h)
     names(gdpT1) <- c(
                       'gdp_t_qq', 'gdpPcap_t_qq', 'gvaMkt_t_qq', 'ndp_t_qq', 'rGDP_t_qq', 'rGNI_t_qq',
@@ -47,7 +47,36 @@ if (getWeb)
                       'hhSavingRate_nsa', 'hrsWorked_nsa', 'hrsWorkedMkt_nsa', 'gdpPhr_nsa', 'gvaPhrMkt_nsa',
                       'rULC_nsa', 'rnfULC_nsa', 'tot_nsa')
 
-    gdpT20h <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5206020_selected_analytical_series.xls&5206.0&Time%20Series%20Spreadsheet&FFB25313C54C0060CA257B2500117912&0&Dec%202012&06.03.2013&Latest"
+    gdpT2h <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5206002_expenditure_volume_measures.xls&5206.0&Time%20Series%20Spreadsheet&245A0ECAB8CE19F5CA257B8000131769&0&Mar%202013&05.06.2013&Latest"
+    gdpT2 <- readABS(gdpT2h)[, c(1:41, 81:123)]
+    names(gdpT20) <- c(
+                       'ggovt_Cons_def_t', 'govt_Cons_nonDef_t', 'govt_Cons_nat_t',
+                       'ggovt_Cons_stateLcl_t', 'ggovt_Cons_t', 'hh_Cons_t',
+                       'allCons_t', 'prGFCF_dwlNew_t', 'prGFCF_dwlAlt_t', 'prGFCF_dwl_t',
+                       'prGFCF_trans_t', 'prGFCF_nonDwl_newBld_t', 'prGFCF_nonDwl_eng_t',
+                       'prGFCF_nonDwl_t', 'prGFCF_MnEqp_t', 'prGFCF_bio_t', 'prGFCF_RnD_t',
+                       'pfGFCF_minEplor_t', 'prGFCF_comp_t', 'prGFCF_art_t', 'prGFCF_IP_t',
+                       'prGFCF_bizInv_t', 'prGFCF_t', 'pbGFCF_Cth_t', 'pbGFCF_stateLcl_t',
+                       'pbGFCF_pubCorp_t', 'pbGFCF_ggovt_Dfnc_t', 'pbGFCF_ggovt_nDef_t',
+                       'pbGFCF_nat_t', 'pbGFCF_ggovt_SnL_t', 'pbGFCF_ggovt_t',
+                       'pbGFCF_t', 'GFCF_t', 'domD_t', 'invntryD_t', 'GNE_t',
+                       'X_t', 'M_t', 'error_t', 'gdp_t',
+                       'ggovt_Cons_def_sa', 'govt_Cons_nonDef_sa', 'govt_Cons_nat_sa',
+                       'ggovt_Cons_stateLcl_sa', 'ggovt_Cons_sa', 'hh_Cons_sa',
+                       'allCons_sa', 'prGFCF_dwlNew_sa', 'prGFCF_dwlAlt_sa',
+                       'prGFCF_dwl_sa', 'prGFCF_trans_sa', 'prGFCF_nonDwl_newBld_sa',
+                       'prGFCF_nonDwl_eng_sa', 'prGFCF_nonDwl_2nd_sa', 'prGFCF_nonDwl_sa',
+                       'prGFCF_MnEqp_New_sa', 'prGFCF_MnEqp_2nd_sa', 'prGFCF_MnEqp_sa',
+                       'prGFCF_bio_sa', 'prGFCF_RnD_sa', 'pfGFCF_minEplor_sa',
+                       'prGFCF_comp_sa', 'prGFCF_art_sa', 'prGFCF_IP_sa', 'prGFCF_bizInv_sa',
+                       'prGFCF_sa', 'pbGFCF_Cth_sa', 'pbGFCF_stateLcl_sa', 'pbGFCF_pubCorp_sa',
+                       'pbGFCF_ggovt_Dfnc_sa', 'pbGFCF_ggovt_nDef_sa', 'pbGFCF_nat_sa',
+                       'pbGFCF_ggovt_SnL_sa', 'pbGFCF_ggovt_sa', 'pbGFCF_sa',
+                       'GFCF_sa', 'domD_sa', 'invntryD_sa', 'GNE_sa',
+                       'X_sa', 'M_sa', 'error_sa', 'gdp_sa'
+                       )
+
+    gdpT20h <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&5206020_selected_analytical_series.xls&5206.0&Time%20Series%20Spreadsheet&E0FEE2F5A6854495CA257B800013230F&0&Mar%202013&05.06.2013&Latest"
     gdpT20 <- readABS(gdpT20h)
     names(gdpT20) <- c(
                        'rGdpE_t', 'rGdpI_t', 'rGdpP_t', 'rNfGdp_t', 'nNfGdp_t', 'NfGDP_ipd_t',
