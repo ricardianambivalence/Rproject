@@ -20,7 +20,7 @@ dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}}
 
-getABS <- TRUE
+getABS <- FALSE
 
 if(getABS) {
     indDstH <- "http://abs.gov.au/AUSSTATS/ABS@Archive.nsf/log?openagent&6321055001table1.xls&6321.0.55.001&Time%20Series%20Spreadsheet&6C52FD6B1F5664DDCA257B810013D028&0&Mar%202013&06.06.2013&Latest"
@@ -52,9 +52,25 @@ indDist$n <- almT2_q$n
 indDist$lost2n <- indDist$dispCmncd_n / indDist$n * 100
 
 indDist_y <- apply.yearly(indDist, colMeans)
+indDist_y$year = as.POSIXlt(index(indDist_y))$year + 1900
+indDist_y_df <- as.data.frame(indDist_y)
+indDist_y_df$split <- '85-94'
+indDist_y_df[indDist_y_df$year %in% 1995:2004, 'split'] <- '95-04'
+indDist_y_df[indDist_y_df$year %in% 2005:2014, 'split'] <- '05-14'
+indDist_y_df$split <- factor(indDist_y_df$split, levels = c('85-94', '95-04', '05-14'),
+                             ordered = TRUE)
+
+# try and quadratic fit -- see if you get a u-shape for the 85-94 part
 
 plot(indDist_y$lost2n)
 
-igp_unionUR <- ggplot() +
+gp_unionUR <- ggplot(indDist_y_df[, c('ur', 'lost2n', 'split')],
+                     aes(x = lost2n, y = ur, color = split)) +
+                labs(y = 'yr ave unemployment', x = 'working days lost') +
+                labs(title = "Working Days lost to industrial action --> unemployment") +
+                scale_color_brewer(palette = 'Set1') +
+                theme(legend.position = 'right') +
+                theme(legend.title = element_blank()) +
                 geom_point() +
-                geom_smooth()
+                geom_smooth(method = 'glm')
+grid.arrange(gp_unionUR, sub = textGrob('www.ricardianambivalence.com'))
