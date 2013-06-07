@@ -13,7 +13,7 @@ plotPATH <- file.path(workingPATH, "Rpics")
 # get data from FRED
 dataNames <- c('PAYEMS', 'UNRATE', 'EMRATIO', 'AHETPI','UEMPMED', 'AWHI', 'AWHMAN',
                'USCONS', 'MANEMP', 'TEMPHELPS', 'USTRADE', 'CES0500000003', 'PCEPILFE',
-               'CNP16OV', 'CE16OV')
+               'CNP16OV', 'CE16OV', 'CIVPART')
 getSymbols(dataNames,src='FRED', return.class = 'xts')
 
 NFP_m <- diff(PAYEMS)
@@ -135,6 +135,18 @@ dev.off()
 
 png(file.path(plotPATH, "NFP_medDurUnShort.png"))
 plot(UEMPMED['2007::'], main="Median duration of Unemployment (weeks)", las=1, type='o', pch=20)
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: FRED', side=1, line=4, adj=0)
+dev.off()
+
+png(file.path(plotPATH, "NFP_partRateLong.png"))
+plot(CIVPART, main="Civilian Labor Force Participation Rate (weeks)", las=1, pch=20)
+mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
+mtext('Source: FRED', side=1, line=4, adj=0)
+dev.off()
+
+png(file.path(plotPATH, "NFP_partRateShort.png"))
+plot(CIVPART['2007::'], main="Civilian Labor Force Participation Rate (weeks)", las=1, type='o', pch=20)
 mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
 mtext('Source: FRED', side=1, line=4, adj=0)
 dev.off()
