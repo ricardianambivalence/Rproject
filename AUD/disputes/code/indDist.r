@@ -55,4 +55,6 @@ indDist_y <- apply.yearly(indDist, colMeans)
 
 plot(indDist_y$lost2n)
 
-igp_unionUR <- ggplot()
+igp_unionUR <- ggplot() +
+                geom_point() +
+                geom_smooth()
