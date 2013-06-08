@@ -11,7 +11,7 @@ require(gridExtra)
 require(timsac)
 
 ## get from web or saved xls?
-getWeb <- FALSE
+getWeb <- TRUE
 
 ## PATH stuff
 projectPATH <- "~/R/AUD/alm"
@@ -303,18 +303,18 @@ DmatchLvl <- melt(data.frame(date = index(Dmatchy[xtsDateCut]),
                             Dmatchy[xtsDateCut, c(1,5,6)]), measure.vars = c(2:4))
 
 # level stack -- pt + ft
-gp_ftpt <- ggplot(subset(lvlN, variable %in% c('ft', 'pt')),
+gp_ftpt <- ggplot(subset(lvln, variable %in% c('ft', 'pt')),
                   aes(x = date, y = value, fill = variable)) +
                 theme_grey() +
-                scale_fill_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
-                labs(title = "Employment by type ('000k)") +
-                labs(y = NULL, x = NULL) +
+                scale_fill_brewer(palette = 'set1', guide = guide_legend(reverse = true)) +
+                labs(title = "employment by type ('000k)") +
+                labs(y = null, x = null) +
                 theme(legend.position = 'right') +
                 theme(legend.title = element_blank()) +
                 geom_bar(stat = 'identity', position = 'stack')
 #
-png(file.path(plotPATH, "ftpt_lvl.png"))
-grid.arrange(gp_ftpt, sub = textGrob('www.ricardianambivalence.com'))
+png(file.path(plotpath, "ftpt_lvl.png"))
+grid.arrange(gp_ftpt, sub = textgrob('www.ricardianambivalence.com'))
 dev.off()
 
 # Matched v. unmatched -- level 'k + stacked
