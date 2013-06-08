@@ -147,7 +147,7 @@ year1900 <- function(dd_y, yrFlip = 50)
 # end date stuff }}}
 
 # {{{ SA a matrix
-mj_SAmat_m <- function(dfx, TO = 1, outGet = 'adjust'){
+mj_SAmat_m <- function(dfx, TO = 1, outGet = 'adjust', BUG = FALSE){
   pckReq('timsac')
   SAmat <- dfx
   for (i in 1:ncol(dfx)){
@@ -156,6 +156,7 @@ mj_SAmat_m <- function(dfx, TO = 1, outGet = 'adjust'){
     beginMth <- as.POSIXlt(index(dfx[begin]))$mon + 1
     end <- max(which(!is.na(dfx[,i])))
     dat <- dfx[begin:end,i]
+    if(BUG) print(paste('adjusting', names(dfx)[i]))
     sa <- baysea(coredata(dat), period=12, year=beginYr, month=beginMth,
                  span=12, shift=1, out=0, trend.order = TO, plot=FALSE)
     firstNA <- rep(NA, (begin-1))
@@ -164,4 +165,33 @@ mj_SAmat_m <- function(dfx, TO = 1, outGet = 'adjust'){
   }
   return(SAmat)
 }
+
+## takes an xts with some sa and some nsa -- with _nsa marking the NSA data.
+## adjusts the subset marked "_nsa" and renames with suffix "(sa)"
+## Convention: _nsa is NSA, _t is trend, " (sa)" means we've done it & no _# means SA'd at source
+
+al_subsetting_sa <- function(x, to=1){
+  subset_adjusting <- x[,grep("_nsa$", names(x))]
+  x[,grep("_nsa$", names(x))] <- mj_SAmat_m(subset_adjusting, to=to)
+  x_names <- grep("_nsa$", names(x))
+  names(x)[x_names] <- paste(substr(names(x)[x_names], 1, nchar(names(x)[x_names])-4), " (sa)", sep="")
+  return(x)
+}
+
+## this wrapper looks to see if you have an xts object, if you do, s.a. it.
+## if not, look to see if the first column of the dataframe is in POSIXct format,
+## make it an xts object and SA.
+
+al_easySA <- function(x){
+   if (class(x)[1] == "xts"){
+      x <- subsetting_sa(x)
+   } else {
+      if (class(x[,1])[1] == "POSIXct"){
+         x <- xts(x[,-1], order.by=as.Date(x[,1]))
+         x <- subsetting_sa(x)
+      }
+   }
+   return(x)
+}
+
 # }}}
