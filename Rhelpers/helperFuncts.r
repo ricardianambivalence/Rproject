@@ -2,7 +2,7 @@
 
 # {{{ general helpers
 
-pcpReq <- function(pckName)
+pckReq <- function(pckName)
 {
     if(!paste0('package:', pckName) %in% search()) require(pckName, character.only=TRUE)
 }
