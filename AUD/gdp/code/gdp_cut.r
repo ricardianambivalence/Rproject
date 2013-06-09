@@ -13,7 +13,7 @@ source('~/R/Rhelpers/helperFuncts.r')
 source('~/R/Rhelpers/RAcolorpal.r')
 
 ## get from web or saved xls?
-getWeb <- TRUE
+getWeb <- FALSE
 
 ## PATH stuff
 projectPATH <- "~/R/AUD/gdp"
@@ -109,7 +109,7 @@ if (getWeb)
     save(gdpT1, gdpT2, gdpT20, file = file.path(dataPATH, "gdpTables.RData"))
 
 } else {
-    load("~/r/aud/gdp/data/gdpTables.RData")
+
 }
 
 gdpX <- gdpT2[, c('hh_Cons_sa', 'ggovt_Cons_sa', 'prGFCF_sa', 'pbGFCF_sa',
@@ -118,6 +118,7 @@ gdpX <- gdpT2[, c('hh_Cons_sa', 'ggovt_Cons_sa', 'prGFCF_sa', 'pbGFCF_sa',
 
 gdp_B6 <- cbind(gdpX[, c('domD_sa', 'GNE_sa', 'gdp_sa')], gdpT1[, c('nGDP_sa', 'rGDI_sa')],
                 gdpT20[, c('rNfGdp_sa')])
+
 gdp_B6 <- gdp_B6[, c(3:1, 6, 5, 4)]
 gdpX_lnD <- 100*diff(gdp_B6, log=TRUE)
 gdpX_lnD2qAR <- rollapplyr(gdpX_lnD, 2, colMeans) * 4
@@ -134,6 +135,8 @@ makeTwins(gdp_B6$rNfGdp_sa)
 makeTwins(gdp_B6$rGDI_sa)
 makeTwins(gdp_B6$nGDP_sa)
 makeTwins(gdp_B6$gdp_sa)
+makeTwins(gdp_B6$GNE_sa)
+makeTwins(gdpT1$tot_sa)
 
 gp_gdpConts <- ggplot(meltx(gdpX_cont['2010::',
                             c('hh_Cons_sa', 'prGFCF_sa', 'invntryD_sa',
