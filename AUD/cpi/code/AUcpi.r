@@ -34,7 +34,7 @@ if (getWeb)
                              )
     absT1[,-1] <- sapply(absT1[, -1], FUN = function(X) as.numeric(as.character(X)))
     rm(absT1xls)
-    save(absT1, file = "~/data/aud/cpi/cpiT1.RData")
+    save(absT1, file = file.path(dataPATH, "cpiT1.RData"))
 
     absT2 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&640102.xls&6401.0&Time%20Series%20Spreadsheet&F1E0E778B5C15BC0CA257B560016351B&0&Mar%202013&24.04.2013&Latest"
     absT2xls <- read.xls(absT2, sheet = 'Data1')
@@ -49,7 +49,7 @@ if (getWeb)
                               )
     absT2[,-1] <- sapply(absT2[, -1], FUN = function(X) as.numeric(as.character(X)))
     rm(absT2xls)
-    save(absT2, file = "~/data/aud/cpi/cpiT2.RData")
+    save(absT2, file = file.path(dataPATH, "cpiT2.RData"))
 
     absT8 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&640106.xls&6401.0&Time%20Series%20Spreadsheet&D5C3A9F4C8A53FDACA257B5600163981&0&Mar%202013&24.04.2013&Latest"
     absT8xls <- read.xls(absT8, sheet = 'Data1')
@@ -83,7 +83,7 @@ if (getWeb)
                              )
     absT8[,-1] <- sapply(absT8[, -1], FUN = function(X) as.numeric(as.character(X)))
     rm(absT8xls)
-    save(absT8, file = "~/data/aud/cpi/cpiT8.RData")
+    save(absT8, file = file.path(Data1, "cpiT8.RData"))
 
     rbaG01 <- "http://www.rba.gov.au/statistics/tables/xls/g01hist.xls"
     rbaG01xls <- read.xls(rbaG01, sheet = 'Data')
@@ -98,7 +98,23 @@ if (getWeb)
     goodRows <- which(!is.na(rbaG01[, 12]))
     rbaG01 <- rbaG01[goodRows, ]
     # rm(rbaG01xls)
-    save(rbaG01, file = "~/data/aud/cpi/rbaG01.RData")
+    save(rbaG01, file = file.path(Data, "rbaG01.RData"))
+
+## {{{ make longCores --> join ABS and RBA WM and TM data
+    rbaCore <- xtsF(rbaG01[, c('date','GCPIOCPMWMYP', 'GCPIOCPMTMYP', 'GCPIOCPMWMQP', 'GCPIOCPMTMQP')])
+
+    absCoreIdx <- xtsF(absT8[, c(1,5,4)])
+    absCore_q <- 100 * (absCoreIdx / lag(absCoreIdx) - 1) # good for absCore_q['20020901::']
+    absCore_y <- 100 * (absCoreIdx / lag(absCoreIdx, 4) - 1) # good for absCore_q['20030601::']
+    absCore <- merge(absCore_y, absCore_q)
+    names(absCore) <- names(rbaCore)
+
+    longCore_q <- rbind(rbaCore['::20020601', 3:4], absCore['20020901::', 3:4])
+    longCore_y <- rbind(rbaCore['::20030301', 1:2], absCore['20030601::', 1:2])
+    longCores <- merge(longCore_q, longCore_y)
+    names(longCores) <- c('CPI_WMq', 'CPI_TMq', 'CPI_WMy', 'CPI_TMy')
+    save(longCores, file = file.path(dataPATH, "longCores.rdata"))
+# }}} end longCores
 
 } else {
     load("~/data/aud/cpi/cpiT1.RData")
