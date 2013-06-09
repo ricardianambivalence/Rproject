@@ -125,6 +125,24 @@ pngMk("nGDP2tmCPI.png")
 grid.arrange(gp_nGDP2TM, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
+# nGDP
+gp_nGDP2TMpool <- ggplot(subset(AD2CPI_df[, c('CPI_TMy', 'nGDP_sa', 'split')],
+                            split %in% c('94-03', '04-13')),
+                   aes(x = nGDP_sa, y = CPI_TMy)) +
+                labs(y = NULL, x = NULL) +
+                labs(title = "Trimmed Mean CPI ~ nominal GDP (lag 4qtr)") +
+                theme(legend.position = 'right') +
+                theme(legend.title = element_blank()) +
+                geom_point(type = 3, color = 'orange') +
+                geom_point(data = tail(AD2CPI_df[, c('CPI_TMy', 'nGDP_sa')], 1),
+                           aes(x = nGDP_sa, y = CPI_TMy), color = 'red', pch = 19, size = 2) +
+                geom_smooth(method = "glm") +
+                geom_vline(xintercept = currentDmd$nGDP_sa, linetype="dotted", color = 'orange',
+                           lwd=1)
+pngMk("nGDP2tmCPIpool.png")
+grid.arrange(gp_nGDP2TMpool, sub = textGrob('www.ricardianambivalence.com'))
+dev.off()
+
 # rGDI
 gp_rGDI2TM <- ggplot(AD2CPI_df[, c('CPI_TMy', 'rGDI_sa', 'split')],
                    aes(x = rGDI_sa, y = CPI_TMy, color = split)) +
