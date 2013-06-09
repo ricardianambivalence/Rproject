@@ -20,6 +20,7 @@ dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}}
 
+# {{{ data stuff
 load("~/R/AUD/cpi/data/longCores.rdata") # RBA and ABS core CPI splice
 load("~/r/aud/gdp/data/gdpTables.RData") # GDP tables
 
@@ -36,6 +37,7 @@ AD2CPI_df[AD2CPI_df$year %in% 2004:2013, 'split'] <- '04-13'
 AD2CPI_df$split <- factor(AD2CPI_df$split, levels = c('84-93', '94-03', '04-13'),
                              ordered = TRUE)
 currentDmd <- as.data.frame(tail(ADx_y, 1))
+# }}} done data stuff
 
 # {{{ plots
 # domestic demand
