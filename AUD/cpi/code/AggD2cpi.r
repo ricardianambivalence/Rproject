@@ -17,7 +17,7 @@ source("~/R/Rhelpers/RAcolorpal.r")
 projPATH <- file.path("~/R/aud/cpi")
 codePATH <- file.path(projPATH, "code")
 dataPATH <- file.path(projPATH, "data")
-plotPATH <- file.path(projPATH, "plot")
+plotPATH <- file.path(projPATH, "pics")
 # }}}
 
 # {{{ data stuff
