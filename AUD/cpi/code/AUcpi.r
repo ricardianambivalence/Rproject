@@ -1,26 +1,29 @@
-# get the ABS files and make some cpi charts
+#{{{set-up Packs and Funs
 rm(list=ls()); gc()
 Sys.setenv(TZ = 'GMT')
 #
+#packages and functions
 require(gdata)
 require(xts)
 require(ggplot2)
 require(reshape2)
-require(TTR)
 require(gridExtra)
-require(timsac)
-source('~/R/Rhelpers/helperFuncts.r')
+require(quantmod)
+source("~/R/Rhelpers/helperFuncts.r")
+source("~/R/Rhelpers/RAcolorpal.r")
+# }}}
 
 ## get from web or saved xls?
 getWeb <- TRUE
 
-## PATH stuff
+# {{{ PATH stuff
 projectPATH <- "~/R/AUD/cpi"
 plotPATH <- file.path(projectPATH, "pics")
 dataPATH <- file.path(projectPATH, "data")
 codePATH <- file.path(projectPATH, "code")
+# }}}
 
-## download from web and format or get from store?
+# {{{ get data
 if (getWeb)
 {
 
@@ -83,7 +86,7 @@ if (getWeb)
                              )
     absT8[,-1] <- sapply(absT8[, -1], FUN = function(X) as.numeric(as.character(X)))
     rm(absT8xls)
-    save(absT8, file = file.path(Data1, "cpiT8.RData"))
+    save(absT8, file = file.path(dataPATH, "cpiT8.RData"))
 
     rbaG01 <- "http://www.rba.gov.au/statistics/tables/xls/g01hist.xls"
     rbaG01xls <- read.xls(rbaG01, sheet = 'Data')
@@ -98,7 +101,7 @@ if (getWeb)
     goodRows <- which(!is.na(rbaG01[, 12]))
     rbaG01 <- rbaG01[goodRows, ]
     # rm(rbaG01xls)
-    save(rbaG01, file = file.path(Data, "rbaG01.RData"))
+    save(rbaG01, file = file.path(dataPATH, "rbaG01.RData"))
 
 ## {{{ make longCores --> join ABS and RBA WM and TM data
     rbaCore <- xtsF(rbaG01[, c('date','GCPIOCPMWMYP', 'GCPIOCPMTMYP', 'GCPIOCPMWMQP', 'GCPIOCPMTMQP')])
@@ -117,27 +120,16 @@ if (getWeb)
 # }}} end longCores
 
 } else {
-    load("~/data/aud/cpi/cpiT1.RData")
-    load("~/data/aud/cpi/cpiT2.RData")
-    load("~/data/aud/cpi/cpiT8.RData")
-    load("~/data/aud/cpi/rbaG01.RData")
+    load(file = file.path(dataPATH, "cpiT1.RData"))
+    load(file = file.path(dataPATH, "cpiT2.RData"))
+    load(file = file.path(dataPATH, "cpiT8.RData"))
+    load(file = file.path(dataPATH, "rbaG01.RData"))
+    load(file = file.path(dataPATH, "rbaG01.RData"))
+    load(file = file.path(dataPATH, "longCores.rdata"))
 }
+# }}} end get data
 
-
-# join ABS and RBA WM and TM data
-rbaCore <- xtsF(rbaG01[, c('date','GCPIOCPMWMYP', 'GCPIOCPMTMYP', 'GCPIOCPMWMQP', 'GCPIOCPMTMQP')])
-
-absCoreIdx <- xtsF(absT8[, c(1,5,4)])
-absCore_q <- 100 * (absCoreIdx / lag(absCoreIdx) - 1) # good for absCore_q['20020901::']
-absCore_y <- 100 * (absCoreIdx / lag(absCoreIdx, 4) - 1) # good for absCore_q['20030601::']
-absCore <- merge(absCore_y, absCore_q)
-names(absCore) <- names(rbaCore)
-
-longCore_q <- rbind(rbaCore['::20020601', 3:4], absCore['20020901::', 3:4])
-longCore_y <- rbind(rbaCore['::20030301', 1:2], absCore['20030601::', 1:2])
-longCores <- merge(longCore_q, longCore_y)
-names(longCores) <- c('CPI_WMq', 'CPI_TMq', 'CPI_WMy', 'CPI_TMy')
-
+# {{{ plots
 gp_tm <- ggplot() +
             geom_bar(data = subset(meltx(longCores), variable %in% c('CPI_TMq') & date > as.Date('2002-01-01')),
                      aes(x = date, y = value, fill = variable, color = variable),
@@ -290,3 +282,4 @@ gp_cpiCityTop4 <- ggplot() +
 png(file.path(plotPATH, "cityBig4.png"))
 grid.arrange(gp_cpiCityTop4, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
+# }}} end plots
