@@ -2,7 +2,7 @@
 
 # {{{ general helpers
 
-pckReq <- function(pckName)
+pcpReq <- function(pckName)
 {
     if(!paste0('package:', pckName) %in% search()) require(pckName, character.only=TRUE)
 }
@@ -10,12 +10,17 @@ pckReq <- function(pckName)
 xtsF <- function(x)
 {
 # add a smart date switch: http://stackoverflow.com/questions/6194285/dealing-with-messy-dates/7975560#7975560
+    pckReq('xts')
     ddx <- xts(x[,-1], order.by = as.POSIXct(x[,1]))
     index(ddx) = make.index.unique(index(ddx))
     return(ddx)
 }
 
-meltx <- function(dx) { melt(data.frame(date = index(dx), dx), id.vars = 1) }
+meltx <- function(dx)
+{
+    pckReq('reshape2')
+    melt(data.frame(date = index(dx), dx), id.vars = 1)
+}
 
 x2df <- function(XTS) {data.frame('date' = index(XTS), data.frame(coredata(XTS)))}
 
