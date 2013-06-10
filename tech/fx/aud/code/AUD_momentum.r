@@ -26,6 +26,7 @@ if(getWEB)
     dataNames <- c('DEXUSAL')
     getSymbols(dataNames,src='FRED', return.class = 'xts')
     AUDUSD <- DEXUSAL['1984::']
+    names(AUDUSD) <- 'AUDUSD'
     save(AUDUSD, file = file.path(dataPATH, "audusd.rdata"))
 } else {
     load(file = file.path(dataPATH, "audusd.rdata"))
@@ -33,43 +34,76 @@ if(getWEB)
 
 # }}} end get data
 
-AUD_ma5 <- SMA(AUDUSD, 5)
-AUD_ma10 <- SMA(AUDUSD, 10)
-
-# Step 2: Construct your trading rule
-sig <- Lag(ifelse(AUD_ma5 > AUD_ma10, 1, ifelse(AUD_ma5 < AUD_ma10, -1, 0)))
-
-# Step 3: The trading rules/equity curve
-ret <- ROC(AUDUSD)*sig
-ret <- ret['19840201::']
-eq <- exp(cumsum(ret))
-eqMax <- cummax(eq)
-
-# plot(eq, log='y')
-
-# Step 4: Evaluate strategy performance
 # a simple sharpe ratio mean return  div std dev
-sRatio <- function(rets, bmk = 0)
+.sharpe <- function(rets, bmk = 0) { SR <- (mean(rets - bmk) / sd(rets - bmk)) }
+
+# a switch for sharpe ratios of various frequencies
+mj_sharpeRswitch <- function(eqty, bmk = 0, freq = 'weekly')
 {
-    SR <- mean(rets - bmk) / sd(ret - bmk)
+    permittedFreq <- c('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    if (!freq %in% permittedFreq) {
+        stop('freq must be one of: daily, weekly, monthly, quarterly, yearly')
+    }
+    switch(freq,
+           daily = { SR <- .sharpe(diff(eqty, log=TRUE, na.pad=FALSE)) * 252^0.5},
+           weekly = { SR <- .sharpe(diff( apply.weekly(eqty, last),
+                                         log=TRUE, na.pad=FALSE)) * 52^0.5},
+           monthly = { SR <- .sharpe(diff( apply.monthly(eqty, last),
+                                         log=TRUE, na.pad=FALSE)) * 12^0.5},
+           quarterly = { SR <- .sharpe(diff( apply.quarterly(eqty, last),
+                                         log=TRUE, na.pad=FALSE)) * 4^0.5},
+           yearly = {SR <- .sharpe(diff(eqty, log=TRUE, na.pad=FALSE)) }
+           )
+    return(SR)
 }
 
-
-backTest_SMA <- function(obj, shortMA, longMA)
+# this makes the signal using a MA crossover
+sigMake_MA <- function(obj, shortMA, longMA, lagLen = 1)
 {
-    for (i in shortMA) {
-        for (j in longMA) {
+    shortMave <- SMA(obj, shortMA)
+    longMave <- SMA(obj, longMA)
+    signal <- lag(ifelse(shortMave > longMave, 1, ifelse(shortMave < longMave, -1, 0)), lagLen)
+    names(signal) <- paste0('maX_', shortMA, 'x', longMA)
+    return(signal)
+}
+
+minePar_SMA <- function(obj, shortRange, longRange, bmk = 0, lagLen = 1)
+{
+    SRmtx <- matrix(NA, nrow = max(shortRange), ncol = max(longRange))
+    for (i in min(shortRange):max(shortRange)) {
+        for (j in min(longRange):max(longRange)) {
             if (i < j) {
-## call a signal creation function HERE
+                sig <- sigMake_MA(obj, i, j, lagLen)
+                SR <- .sharpe(ROC(obj) * sig[!is.na(sig)])
+                SRmtx[i,j] <- SR
+            }
+        }
+    }
+    return(SRmtx)
 }
 
-# this should be generalised later
-sigMake_MA <- function(obj, shortMA, longMA)
+# TODO - find a which function to report row and col of max value in matrix
+smaPAR <- minePar_SMA(AUDUSD, 1:20, 2:63, bmk = 0, lagLen = 1)
+
+tradeMA <- function(obj, shortMA, longMA, bmk = 0, lagLen = 1)
 {
-    shortMA <- SMA(obj, shortMA)
-    longMA <- SMA(obj, longMA)
-    signal <- Lag(ifelse(shortMA > longMA, 1, ifelse(shortMA < longMA, -1, 0)))
+    signal <- sigMake_MA(obj, shortMA, longMA, lagLen)
+    returns <- ROC(obj) * signal[!is.na(signal)]
+    names(returns) <- 'Returns'
+    equity <- exp(cumsum(returns))
+    on.exit(plot(equity, main = paste0(names(obj), ' -- Moving Average Crossover: ', shortMA, 'x',
+                                       longMA)))
+    retList <- list('Signal' = signal, 'Returns' = returns,
+                    'Equity' = equity)
 }
+
+tt8x13 <- tradeMA(AUDUSD, 1, 3)
+mret = merge(diff(AUDUSD, log=T), tt8x13$Returns)
+
+
+table.Drawdowns(tt8x13, top=10)
+table.DownsideRisk(tt8x13)
+charts.PerformanceSummary(tt8x13)
 
 # this function needs fixing ...
 srByYr <- function(ret, bmk=0){
@@ -120,17 +154,4 @@ rmdByYr <- function(ret, coc=0){
     return(rmdList)
 }
 
-yearSR <- melt(srByYr(ret))
-yearV2 <- melt(v2rByYr(ret))[, -c(1:2)]
-yearRMD <- melt(rmdByYr(ret))[, -c(1:2)]
-names(yearSR) <- c('sharpeRatio', 'year')
-names(yearV2) <- c('adjReturn', 'year')
-names(yearRMD) <- c('returnMaxDrawdown', 'year')
-barplot(yearSR$sharpeRatio, names.arg=yearSR$year, las=2, main="Sharpe Raitio by year") #
-
-
-totalSR  <- sqrt(252)*apply(ret,2,mean)/apply(ret, 2,sd) #AR by sqrt trading days per yr
-table.Drawdowns(ret, top=10)
-table.DownsideRisk(ret)
-charts.PerformanceSummary(ret)
 
