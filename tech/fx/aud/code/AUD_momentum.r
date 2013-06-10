@@ -19,7 +19,7 @@ codePATH <- file.path(projPATH, "code")
 dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}}
-getWEB <- TRUE
+getWEB <- FALSE
 ## {{{ Step 1: Get the data
 if(getWEB)
 {
@@ -48,7 +48,31 @@ eqMax <- cummax(eq)
 # plot(eq, log='y')
 
 # Step 4: Evaluate strategy performance
-srByYr <- function(ret, coc=0){
+# a simple sharpe ratio mean return  div std dev
+sRatio <- function(rets, bmk = 0)
+{
+    SR <- mean(rets - bmk) / sd(ret - bmk)
+}
+
+
+backTest_SMA <- function(obj, shortMA, longMA)
+{
+    for (i in shortMA) {
+        for (j in longMA) {
+            if (i < j) {
+## call a signal creation function HERE
+}
+
+# this should be generalised later
+sigMake_MA <- function(obj, shortMA, longMA)
+{
+    shortMA <- SMA(obj, shortMA)
+    longMA <- SMA(obj, longMA)
+    signal <- Lag(ifelse(shortMA > longMA, 1, ifelse(shortMA < longMA, -1, 0)))
+}
+
+# this function needs fixing ...
+srByYr <- function(ret, bmk=0){
     # a function to return sharpe ratio by year
     aret <- ret - ((1+ coc)^(1/365) -1)
     yy <- unique(as.POSIXlt(index(ret))$year) + 1900
