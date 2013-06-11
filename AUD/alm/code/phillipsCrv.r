@@ -77,7 +77,7 @@ gp_Dd2nPop <- ggplot(PCframe_df[, c('nPop', 'domD_sa', 'split')],
                 geom_smooth(method = 'glm') +
                 geom_vline(xintercept = currentDmd$domD_sa, linetype="dotted", color = 'black',
                            lwd=1)
-pngMk("dd2nPop")
+pngMk("dd2nPop.png")
 grid.arrange(gp_Dd2nPop, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
@@ -111,7 +111,7 @@ gp_gne2nPop <- ggplot(PCframe_df[, c('nPop', 'GNE_sa', 'split')],
                 geom_smooth(method = 'glm') +
                 geom_vline(xintercept = currentDmd$GNE_sa, linetype="dotted", color = 'black',
                            lwd=1)
-pngMk("gne2nPop")
+pngMk("gne2nPop.png")
 grid.arrange(gp_gne2nPop, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
@@ -145,7 +145,7 @@ gp_gdp2nPop <- ggplot(PCframe_df[, c('nPop', 'gdp_sa', 'split')],
                 geom_smooth(method = 'glm') +
                 geom_vline(xintercept = currentDmd$gdp_sa, linetype="dotted", color = 'black',
                            lwd=1)
-pngMk("gdp2nPop")
+pngMk("gdp2nPop.png")
 grid.arrange(gp_gdp2nPop, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
@@ -179,7 +179,7 @@ gp_rNfGdp2nPop <- ggplot(PCframe_df[, c('nPop', 'rNfGdp_sa', 'split')],
                 geom_smooth(method = 'glm') +
                 geom_vline(xintercept = currentDmd$rNfGdp_sa, linetype="dotted", color = 'black',
                            lwd=1)
-pngMk("rNfGdp2nPop")
+pngMk("rNfGdp2nPop.png")
 grid.arrange(gp_rNfGdp2nPop, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
@@ -213,7 +213,7 @@ gp_nGDP2nPop <- ggplot(PCframe_df[, c('nPop', 'nGDP_sa', 'split')],
                 geom_smooth(method = 'glm') +
                 geom_vline(xintercept = currentDmd$nGDP_sa, linetype="dotted", color = 'black',
                            lwd=1)
-pngMk("nGDP2nPop")
+pngMk("nGDP2nPop.png")
 grid.arrange(gp_nGDP2nPop, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 
@@ -247,7 +247,7 @@ gp_rGDI2nPop <- ggplot(PCframe_df[, c('nPop', 'rGDI_sa', 'split')],
                 geom_smooth(method = 'glm') +
                 geom_vline(xintercept = currentDmd$rGDI_sa, linetype="dotted", color = 'black',
                            lwd=1)
-pngMk("rGDI2nPop")
+pngMk("rGDI2nPop.png")
 grid.arrange(gp_rGDI2nPop, sub = textGrob('www.ricardianambivalence.com'))
 dev.off()
 # }}}close plots
