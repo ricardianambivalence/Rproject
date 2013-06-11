@@ -20,7 +20,7 @@ dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}} close paths
 
-getABS <- TRUE
+getABS <- FALSE
 
 if(getABS) {
     hFinT1 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&560901.xls&5609.0&Time%20Series%20Spreadsheet&4A9ED11D7D831626CA257B8300124872&0&Apr%202013&11.06.2013&Latest"
@@ -96,12 +96,12 @@ prchNwCycles <- data.frame('p94' = as.numeric(c1S[,15]), 'p00' = as.numeric(c2S[
                           )
 
 InvmtCycles <- data.frame('p94' = as.numeric(pc1S[,25]), 'p00' = as.numeric(pc2S[,25]),
-                          'p08' = as.numeric(pc3S[,25]), 'p10' = as.numeric(pc4S[,4]),
+                          'p08' = as.numeric(pc3S[,25]), 'p10' = as.numeric(pc4S[,25]),
                           'idx' = 0:(splitLength-1)
                           )
 
 allValueCycles <- data.frame('p94' = as.numeric(pc1S[,16]), 'p00' = as.numeric(pc2S[,16]),
-                          'p08' = as.numeric(pc3S[,16]), 'p10' = as.numeric(pc4S[,4]),
+                          'p08' = as.numeric(pc3S[,16]), 'p10' = as.numeric(pc4S[,16]),
                           'idx' = 0:(splitLength-1)
                           )
 
