@@ -47,13 +47,8 @@ readClvFed <- function(URL, SHEET = 'Sheet1', LineSkip = 0, dateType = 'b-y')
 
 dfxColScl <- function(dfrm, pos=1, idx = 100)
 {
-    scaledDF <- dfrm
-    for (i in 1:ncol(dfrm)) {
-        scaledDF[, i] <- dfrm[,i] / as.numeric(dfrm[pos, i]) * idx
-    }
-    return(scaledDF)
+    sweep(dfrm, 2, dfrm[1,], "/")
 }
-
 
 # }}}
 
