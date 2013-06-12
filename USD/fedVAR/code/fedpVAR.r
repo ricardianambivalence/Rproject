@@ -120,11 +120,11 @@ optLag3 <- findMaxVARLag(VAR3frame_3m, firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
 fed3VAR.test6 <- testVar(VAR3frame_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
-# sumTestError.fed3_6m <- errTstVar(fed3VAR.test6)
+sumTestError.fed3_6m <- errTstVar(fed3VAR.test6)
 # print(sumTestError.fed3_6m$r)
 
 fed3VAR.test12 <- testVar(VAR3frame_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-# sumTestError.fed3_12m <- errTstVar(fed3VAR.test12)
+sumTestError.fed3_12m <- errTstVar(fed3VAR.test12)
 # }}} close rmsfe
 fed3VAR.mod <- VAR(scale(VAR3frame_3m), p = optLag3, ic = icT)
 fed3VAR.mod2 <- VAR((VAR3frame_3m), p = optLag3, ic = icT)
@@ -137,11 +137,11 @@ optLag4 <- findMaxVARLag(VAR4frame_3m, firstMax = 9, crit = paste0(icT, "(n)")) 
 
 # {{{VAR test stuff -- rmsfe etc
 fed4VAR.test6 <- testVar(VAR4frame_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
-# sumTestError.fed4_6m <- errTstVar(fed4VAR.test6)
-print(sumTestError.fed4_6m$r)
+sumTestError.fed4_6m <- errTstVar(fed4VAR.test6)
+# print(sumTestError.fed4_6m$r)
 
 fed4VAR.test12 <- testVar(VAR4frame_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-# sumTestError.fed4_12m <- errTstVar(fed4VAR.test12)
+sumTestError.fed4_12m <- errTstVar(fed4VAR.test12)
 # }}} close rmsfe
 fed4VAR.mod <- VAR(scale(VAR4frame_3m), p = optLag4, ic = icT)
 fed4VAR.mod2 <- VAR((VAR4frame_3m), p = optLag4, ic = icT)
@@ -154,8 +154,8 @@ optLag5 <- findMaxVARLag(VAR5frame_3m, firstMax = 9, crit = paste0(icT, "(n)")) 
 
 # {{{VAR test stuff -- rmsfe etc
 fed5VAR.test6 <- testVar(VAR5frame_3m, skip = 94, nAhead = 6, Vlag = 9, IC = icT)
-# sumTestError.fed5_6m <- errTstVar(fed5VAR.test6)
-print(sumTestError.fed5_6m$r)
+sumTestError.fed5_6m <- errTstVar(fed5VAR.test6)
+# print(sumTestError.fed5_6m$r)
 
 fed5VAR.test12 <- testVar(VAR5frame_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed5_12m <- errTstVar(fed5VAR.test12)
