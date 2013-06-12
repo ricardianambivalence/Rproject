@@ -131,6 +131,10 @@ VAR4pframe_3m <- rollapplyr(na.locf(VAR4pframe), 3, colMeans)['19821101::2009033
 # PPIe_shock, demand, FCI, inflation, 3m bill
 VAR5frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, corePCE_6mAR, FFR)
 VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)['19821101::20090331']
+
+# demand, UR, FCI, inflation, 3m bill
+VAR5urframe <- cbind(CFNAI, UNRATE, FCI$NFCI, corePCE_6mAR, FFR)
+VAR5urframe_3m <- rollapplyr(na.locf(VAR5urframe), 3, colMeans)['19821101::20090331']
 # }}}close data arrange
 # ==> TODO -- email the dudes at the chicago fed about the FCI in a VAR ... adj or no?
 
@@ -238,6 +242,23 @@ fed5VAR.pp <- predict(fed5VAR.mod2, n.ahead = 60)
 fed5VAR.irf <- irf(fed5VAR.mod2, n.ahead=48)
 # }}} close 5 part VAR
 
+# {{{ five part VAR - CF-UR-FCI-PCE-FFR
+optLag5ur <- findMaxVARLag(VAR5urframe_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
+
+# {{{VAR test stuff -- rmsfe etc
+fed5urVAR.test6 <- testVar(VAR5urframe_3m, skip = 94, nAhead = 6, Vlag = 9, IC = icT)
+sumTestError.fed5ur_6m <- errTstVar(fed5urVAR.test6)
+# print(sumTestError.fed5_6m$r)
+
+fed5urVAR.test12 <- testVar(VAR5urframe_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+sumTestError.fed5ur_12m <- errTstVar(fed5urVAR.test12)
+# }}} close rmsfe
+fed5urVAR.mod <- VAR(scale(VAR5urframe_3m), p = 6, ic = icT)
+fed5urVAR.mod2 <- VAR(VAR5urframe_3m, p = optLag5, ic = icT)
+fed5urVAR.pp <- predict(fed5urVAR.mod2, n.ahead = 60)
+fed5urVAR.irf <- irf(fed5urVAR.mod2, n.ahead=48)
+# }}} close 5 part VAR CF-UR-FCI-PCE-FFR
+
 # {{{ spider POOS plots
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3 VAR
@@ -329,6 +350,22 @@ plot.zoo(fed5VAR.test6$FFR['1993::'],
          lwd = c(3, rep(1, ncol(fed5VAR.test6$FFR) - 1)),
          type = c('s', rep('l', ncol(fed5VAR.test6$FFR) - 1)),
          main = "Pseudo Out of Sample (6m forecasts): 5 Part FED VAR",
+         xlab = "",
+         ylab = ""
+         )
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 5ur VAR
+pdf(file.path(plotPATH, "fed5urVAR.pdf"))
+plot.zoo(fed5urVAR.test6$FFR['1993::'],
+         screen=1,
+         col=c(1, rep(8, ncol(fed5urVAR.test6$FFR)-1)),
+         las=1,
+         lwd = c(3, rep(1, ncol(fed5urVAR.test6$FFR) - 1)),
+         type = c('s', rep('l', ncol(fed5urVAR.test6$FFR) - 1)),
+         main = "Pseudo Out of Sample (6m forecasts): 5ur Part FED VAR",
          xlab = "",
          ylab = ""
          )
