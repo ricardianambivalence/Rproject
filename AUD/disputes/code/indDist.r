@@ -54,10 +54,10 @@ indDist$lost2n <- indDist$dispCmncd_n / indDist$n * 100
 indDist_y <- apply.yearly(indDist, colMeans)
 indDist_y$year = as.POSIXlt(index(indDist_y))$year + 1900
 indDist_y_df <- as.data.frame(indDist_y)
-indDist_y_df$split <- '85-94'
-indDist_y_df[indDist_y_df$year %in% 1995:2004, 'split'] <- '95-04'
-indDist_y_df[indDist_y_df$year %in% 2005:2014, 'split'] <- '05-14'
-indDist_y_df$split <- factor(indDist_y_df$split, levels = c('85-94', '95-04', '05-14'),
+indDist_y_df$split <- '84-93'
+indDist_y_df[indDist_y_df$year %in% 1994:2003, 'split'] <- '94-03'
+indDist_y_df[indDist_y_df$year %in% 2004:2013, 'split'] <- '04-13'
+indDist_y_df$split <- factor(indDist_y_df$split, levels = c('84-93', '94-03', '04-13'),
                              ordered = TRUE)
 
 # try and quadratic fit -- see if you get a u-shape for the 85-94 part
@@ -66,11 +66,14 @@ plot(indDist_y$lost2n)
 
 gp_unionUR <- ggplot(indDist_y_df[, c('ur', 'lost2n', 'split')],
                      aes(x = lost2n, y = ur, color = split)) +
-                labs(y = 'yr ave unemployment', x = 'working days lost') +
-                labs(title = "Working Days lost to industrial action --> unemployment") +
+                labs(y = 'yr ave unemployment',
+                     x = '% employess involved in disputes') +
+                labs(title = "% of employees in disputes --> unemployment") +
                 scale_color_brewer(palette = 'Set1') +
                 theme(legend.position = 'right') +
                 theme(legend.title = element_blank()) +
                 geom_point() +
                 geom_smooth(method = 'glm')
+pngMk("disputes2UR.png")
 grid.arrange(gp_unionUR, sub = textGrob('www.ricardianambivalence.com'))
+dev.off()
