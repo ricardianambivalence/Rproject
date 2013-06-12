@@ -107,6 +107,10 @@ VAR3frame_3m <- rollapplyr(na.locf(VAR3frame), 3, colMeans)['19820301::20090331'
 VAR4frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, tbill3m$tbill3m)
 VAR4frame_3m <- rollapplyr(na.locf(VAR4frame), 3, colMeans)['19820301::20090331']
 
+# demand, FCI, cPCE, 3m bill
+VAR4pframe <- cbind(CFNAI, FCI$NFCI, corePCE_6mAR, tbill3m$tbill3m)
+VAR4pframe_3m <- rollapplyr(na.locf(VAR4pframe), 3, colMeans)['19820301::20090331']
+
 # PPIe_shock, demand, FCI, inflation, 3m bill
 VAR5frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, corePCE_6mAR, tbill3m$tbill3m)
 VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)['19820301::20090331']
@@ -148,6 +152,23 @@ fed4VAR.mod2 <- VAR((VAR4frame_3m), p = optLag4, ic = icT)
 fed4VAR.pp <- predict(fed4VAR.mod2, n.ahead = 60)
 fed4VAR.irf <- irf(fed4VAR.mod2, n.ahead=48)
 # }}} close 4 part VAR
+
+## {{{ four part VAR -- corePCE not oilShocks
+optLag4p <- findMaxVARLag(VAR4pframe_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
+
+# {{{VAR test stuff -- rmsfe etc
+fed4pVAR.test6 <- testVar(VAR4pframe_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+sumTestError.fed4p_6m <- errTstVar(fed4pVAR.test6)
+# print(sumTestError.fed4_6m$r)
+
+fed4pVAR.test12 <- testVar(VAR4pframe_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+sumTestError.fed4p_12m <- errTstVar(fed4pVAR.test12)
+# }}} close rmsfe
+fed4pVAR.mod <- VAR(scale(VAR4pframe_3m), p = optLag4p, ic = icT)
+fed4pVAR.mod2 <- VAR((VAR4pframe_3m), p = optLag4p, ic = icT)
+fed4pVAR.pp <- predict(fed4pVAR.mod2, n.ahead = 60)
+fed4pVAR.irf <- irf(fed4pVAR.mod2, n.ahead=48)
+# }}} close 4p part VAR
 
 # {{{ five part VAR - added 6mAR core PCE
 optLag5 <- findMaxVARLag(VAR5frame_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
@@ -192,6 +213,22 @@ plot.zoo(fed4VAR.test6$tbill3m['1993::'],
          lwd = c(3, rep(1, ncol(fed4VAR.test6$tbill3m) - 1)),
          type = c('s', rep('l', ncol(fed4VAR.test6$tbill3m) - 1)),
          main = "Pseudo Out of Sample (6m forecasts): 4 Part FED VAR",
+         xlab = "",
+         ylab = ""
+         )
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 4p VAR
+pdf(file.path(plotPATH, "fed4pVAR.pdf"))
+plot.zoo(fed4pVAR.test6$tbill3m['1993::'],
+         screen=1,
+         col=c(1, rep(8, ncol(fed4pVAR.test6$tbill3m)-1)),
+         las=1,
+         lwd = c(3, rep(1, ncol(fed4pVAR.test6$tbill3m) - 1)),
+         type = c('s', rep('l', ncol(fed4pVAR.test6$tbill3m) - 1)),
+         main = "Pseudo Out of Sample (6m forecasts): 4p Part FED VAR",
          xlab = "",
          ylab = ""
          )
