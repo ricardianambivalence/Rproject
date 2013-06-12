@@ -40,6 +40,13 @@ if(getData)
     load(file = file.path(dataPATH, "fedVARdata.rdata"))
 }
 
+# make a single FFR instrument - use mid after 15 Dec 2008
+fedMid <- (DFEDTARU + DFEDTARL)/2
+names(fedMid) <- 'fedFunds'
+FFR <- rbind(DFEDTAR, fedMid)
+names(FFR) <- 'FFR'
+
+
 FCI <- apply.monthly(merge(NFCI, ANFCI), colMeans)
 index(FCI) <- dateSwitch(index(FCI), lastDay = FALSE)
 
@@ -99,22 +106,23 @@ names(PPIe_shock) <- 'PPIe_shock'
 # info crit -- set to FPE
 icT <- "FPE"
 
+# {{{ arrange data sets
 # demand, FCI, 3m bill
-VAR3frame <- cbind(CFNAI, FCI$NFCI, tbill3m$tbill3m)
+VAR3frame <- cbind(CFNAI, FCI$NFCI, FFR)
 VAR3frame_3m <- rollapplyr(na.locf(VAR3frame), 3, colMeans)['19820301::20090331']
 
 # PPIe_shock, demand, FCI, 3m bill
-VAR4frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, tbill3m$tbill3m)
+VAR4frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, FFR)
 VAR4frame_3m <- rollapplyr(na.locf(VAR4frame), 3, colMeans)['19820301::20090331']
 
 # demand, FCI, cPCE, 3m bill
-VAR4pframe <- cbind(CFNAI, FCI$NFCI, corePCE_6mAR, tbill3m$tbill3m)
+VAR4pframe <- cbind(CFNAI, FCI$NFCI, corePCE_6mAR, FFR)
 VAR4pframe_3m <- rollapplyr(na.locf(VAR4pframe), 3, colMeans)['19820301::20090331']
 
 # PPIe_shock, demand, FCI, inflation, 3m bill
-VAR5frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, corePCE_6mAR, tbill3m$tbill3m)
+VAR5frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, corePCE_6mAR, FFR)
 VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)['19820301::20090331']
-
+# }}}close data arrange
 # ==> TODO -- email the dudes at the chicago fed about the FCI in a VAR ... adj or no?
 
 # VAR modeling
@@ -187,6 +195,7 @@ fed5VAR.pp <- predict(fed5VAR.mod2, n.ahead = 60)
 fed5VAR.irf <- irf(fed5VAR.mod2, n.ahead=48)
 # }}} close 5 part VAR
 
+# {{{ spider POOS plots
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3 VAR
 pdf(file.path(plotPATH, "fed3VAR.pdf"))
@@ -250,3 +259,4 @@ plot.zoo(fed5VAR.test6$tbill3m['1993::'],
          )
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
+# }}}close spider plots
