@@ -53,6 +53,16 @@ tbill3m <- apply.monthly(WGS3MO, mean, na.rm=T)
 names(tbill3m) <- 'tbill3m'
 index(tbill3m) <- dateSwitch(index(tbill3m), lastDay = FALSE)
 
+BRENT_m <- apply.monthly(DCOILBRENTEU, mean, na.rm=TRUE)
+index(BRENT_m) <- as.Date(dateSwitch(index(BRENT_m), lastDay = FALSE))
+LT_tt <- seq(index(first(OILPRICE)), index(last(BRENT_m)), by = 'mon')
+LToil <- xts(rbind(coredata(OILPRICE['::19870401']),
+                   coredata(BRENT_m['19870501::'])),
+             order.by = LT_tt)
+LToil_m <- 100*(LToil / lag(LToil, 1) - 1)
+LToil_y <- 100*(LToil / lag(LToil, 12) - 1)
+LToil_6mAR <- ((1 + rollapplyr(LToil_m/100, 6, mean))^12 - 1)*100
+
 # info crit -- set to FPE
 icT <- "FPE"
 
@@ -61,7 +71,7 @@ VAR4frame <- cbind(CFNAI, FCI$NFCI, corePCE_6mAR, tbill3m$tbill3m)
 VAR4frame_3m <- rollapplyr(na.locf(VAR4frame), 3, colMeans)['19820301::20090331']
 
 # demand, FCI, inflation, oil, 3m bill
-VAR5frame <- cbind(UNRATE, FCI$NFCI, corePCE_y, _OIL_, tbill3m$tbill3m)
+VAR5frame <- cbind(LToil_6mAR, CFNAI, FCI$NFCI, corePCE_6mAR, tbill3m$tbill3m)
 VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)['19820301::20081231']
 
 # ==> TODO -- email the dudes at the chicago fed about the FCI in a VAR ... adj or no?
@@ -92,6 +102,7 @@ optLag5 <- findMaxVARLag(VAR5frame_3m, firstMax = 9, crit = paste0(icT, "(n)")) 
 # {{{VAR test stuff -- rmsfe etc
 fed5VAR.test6 <- testVar(scale(VAR5frame_3m), skip = 94, nAhead = 6, Vlag = 9, IC = icT)
 sumTestError.fed5_6m <- errTstVar(fed5VAR.test6)
+print(sumTestError.fed5_6m$r)
 #
 fed5VAR.test12 <- testVar(scale(VAR5frame_3m), skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed5_12m <- errTstVar(fed5VAR.test12)
