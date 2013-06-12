@@ -119,11 +119,11 @@ VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)['19820301::20090331'
 optLag3 <- findMaxVARLag(VAR3frame_3m, firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
-fed3VAR.test6 <- testVar(scale(VAR3frame_3m), skip = 94, nAhead = 6, Vlag = 6, IC = icT)
-sumTestError.fed3_6m <- errTstVar(fed3VAR.test6)
-print(sumTestError.fed3_6m$r)
+fed3VAR.test6 <- testVar(VAR3frame_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+# sumTestError.fed3_6m <- errTstVar(fed3VAR.test6)
+# print(sumTestError.fed3_6m$r)
 
-# fed3VAR.test12 <- testVar(scale(VAR3frame_3m), skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+fed3VAR.test12 <- testVar(VAR3frame_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 # sumTestError.fed3_12m <- errTstVar(fed3VAR.test12)
 # }}} close rmsfe
 fed3VAR.mod <- VAR(scale(VAR3frame_3m), p = optLag3, ic = icT)
@@ -136,11 +136,11 @@ fed3VAR.irf <- irf(fed3VAR.mod2, n.ahead=48)
 optLag4 <- findMaxVARLag(VAR4frame_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
-fed4VAR.test6 <- testVar(scale(VAR4frame_3m), skip = 94, nAhead = 6, Vlag = 6, IC = icT)
-sumTestError.fed4_6m <- errTstVar(fed4VAR.test6)
+fed4VAR.test6 <- testVar(VAR4frame_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+# sumTestError.fed4_6m <- errTstVar(fed4VAR.test6)
 print(sumTestError.fed4_6m$r)
 
-# fed4VAR.test12 <- testVar(scale(VAR4frame_3m), skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+fed4VAR.test12 <- testVar(VAR4frame_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 # sumTestError.fed4_12m <- errTstVar(fed4VAR.test12)
 # }}} close rmsfe
 fed4VAR.mod <- VAR(scale(VAR4frame_3m), p = optLag4, ic = icT)
@@ -153,11 +153,11 @@ fed4VAR.irf <- irf(fed4VAR.mod2, n.ahead=48)
 optLag5 <- findMaxVARLag(VAR5frame_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
-fed5VAR.test6 <- testVar(scale(VAR5frame_3m), skip = 94, nAhead = 6, Vlag = 9, IC = icT)
-sumTestError.fed5_6m <- errTstVar(fed5VAR.test6)
+fed5VAR.test6 <- testVar(VAR5frame_3m, skip = 94, nAhead = 6, Vlag = 9, IC = icT)
+# sumTestError.fed5_6m <- errTstVar(fed5VAR.test6)
 print(sumTestError.fed5_6m$r)
 
-fed5VAR.test12 <- testVar(scale(VAR5frame_3m), skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+fed5VAR.test12 <- testVar(VAR5frame_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed5_12m <- errTstVar(fed5VAR.test12)
 # }}} close rmsfe
 fed5VAR.mod <- VAR(scale(VAR5frame_3m), p = 6, ic = icT)
@@ -165,3 +165,51 @@ fed5VAR.mod2 <- VAR(VAR5frame_3m, p = optLag5, ic = icT)
 fed5VAR.pp <- predict(fed5VAR.mod2, n.ahead = 60)
 fed5VAR.irf <- irf(fed5VAR.mod2, n.ahead=48)
 # }}} close 5 part VAR
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 3 VAR
+pdf(file.path(plotPATH, "fed3VAR.pdf"))
+plot.zoo(fed3VAR.test6$tbill3m['1993::'],
+         screen=1,
+         col=c(1, rep(8, ncol(fed3VAR.test6$tbill3m)-1)),
+         las=1,
+         lwd = c(3, rep(1, ncol(fed3VAR.test6$tbill3m) - 1)),
+         type = c('s', rep('l', ncol(fed3VAR.test6$tbill3m) - 1)),
+         main = "Pseudo Out of Sample (6m forecasts): 3 Part FED VAR",
+         xlab = "",
+         ylab = ""
+         )
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 4 VAR
+pdf(file.path(plotPATH, "fed4VAR.pdf"))
+plot.zoo(fed4VAR.test6$tbill3m['1993::'],
+         screen=1,
+         col=c(1, rep(8, ncol(fed4VAR.test6$tbill3m)-1)),
+         las=1,
+         lwd = c(3, rep(1, ncol(fed4VAR.test6$tbill3m) - 1)),
+         type = c('s', rep('l', ncol(fed4VAR.test6$tbill3m) - 1)),
+         main = "Pseudo Out of Sample (6m forecasts): 4 Part FED VAR",
+         xlab = "",
+         ylab = ""
+         )
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 5 VAR
+pdf(file.path(plotPATH, "fed5VAR.pdf"))
+plot.zoo(fed5VAR.test6$tbill3m['1993::'],
+         screen=1,
+         col=c(1, rep(8, ncol(fed5VAR.test6$tbill3m)-1)),
+         las=1,
+         lwd = c(3, rep(1, ncol(fed5VAR.test6$tbill3m) - 1)),
+         type = c('s', rep('l', ncol(fed5VAR.test6$tbill3m) - 1)),
+         main = "Pseudo Out of Sample (6m forecasts): 5 Part FED VAR",
+         xlab = "",
+         ylab = ""
+         )
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
