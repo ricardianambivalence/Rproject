@@ -112,10 +112,13 @@ icT <- "FPE"
 VAR3frame <- cbind(CFNAI, FCI$NFCI, FFR)
 VAR3frame_3m <- rollapplyr(na.locf(VAR3frame), 3, colMeans)['19821101::20090331']
 
-# {{{ arrange data sets
 # demand, FCI, 3m bill
 VAR3pframe <- cbind(CFNAI, corePCE_6mAR, FFR)
 VAR3pframe_3m <- rollapplyr(na.locf(VAR3pframe), 3, colMeans)['19821101::20090331']
+
+# demand, FCI, 3m bill
+VAR3urframe <- cbind(UNRATE, corePCE_6mAR, FFR)
+VAR3urframe_3m <- rollapplyr(na.locf(VAR3urframe), 3, colMeans)['19821101::20090331']
 
 # PPIe_shock, demand, FCI, 3m bill
 VAR4frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, FFR)
@@ -149,6 +152,23 @@ fed3VAR.mod2 <- VAR((VAR3frame_3m), p = optLag3, ic = icT)
 fed3VAR.pp <- predict(fed3VAR.mod2, n.ahead = 60)
 fed3VAR.irf <- irf(fed3VAR.mod2, n.ahead=48)
 # }}} close 3 part VAR
+
+## {{{ three part VAR: UR p cash
+optLag3 <- findMaxVARLag(VAR3urframe_3m, firstMax = 9, crit = paste0(icT, "(n)"))
+
+# {{{VAR test stuff -- rmsfe etc
+fed3urVAR.test6 <- testVar(VAR3urframe_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+sumTestError.fed3ur_6m <- errTstVar(fed3urVAR.test6)
+# print(sumTestError.fed3_6m$r)
+
+fed3urVAR.test12 <- testVar(VAR3urframe_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+sumTestError.fed3ur_12m <- errTstVar(fed3urVAR.test12)
+# }}} close rmsfe
+fed3urVAR.mod <- VAR(scale(VAR3urframe_3m), p = optLag3, ic = icT)
+fed3urVAR.mod2 <- VAR((VAR3urframe_3m), p = optLag3, ic = icT)
+fed3urVAR.pp <- predict(fed3urVAR.mod2, n.ahead = 60)
+fed3urVAR.irf <- irf(fed3urVAR.mod2, n.ahead=48)
+# }}} close 3ur part VAR
 
 ## {{{ three part VAR: with p ex oil FCI
 optLag3p <- findMaxVARLag(VAR3pframe_3m, firstMax = 9, crit = paste0(icT, "(n)"))
@@ -229,6 +249,38 @@ plot.zoo(fed3VAR.test6$FFR['1993::'],
          lwd = c(3, rep(1, ncol(fed3VAR.test6$FFR) - 1)),
          type = c('s', rep('l', ncol(fed3VAR.test6$FFR) - 1)),
          main = "Pseudo Out of Sample (6m forecasts): 3 Part FED VAR",
+         xlab = "",
+         ylab = ""
+         )
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 3ur VAR
+pdf(file.path(plotPATH, "fed3urVAR.pdf"))
+plot.zoo(fed3urVAR.test6$FFR['1993::'],
+         screen=1,
+         col=c(1, rep(8, ncol(fed3urVAR.test6$FFR)-1)),
+         las=1,
+         lwd = c(3, rep(1, ncol(fed3urVAR.test6$FFR) - 1)),
+         type = c('s', rep('l', ncol(fed3urVAR.test6$FFR) - 1)),
+         main = "Pseudo Out of Sample (6m forecasts): 3ur Part FED VAR",
+         xlab = "",
+         ylab = ""
+         )
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 3p VAR
+pdf(file.path(plotPATH, "fed3pVAR.pdf"))
+plot.zoo(fed3pVAR.test6$FFR['1993::'],
+         screen=1,
+         col=c(1, rep(8, ncol(fed3pVAR.test6$FFR)-1)),
+         las=1,
+         lwd = c(3, rep(1, ncol(fed3pVAR.test6$FFR) - 1)),
+         type = c('s', rep('l', ncol(fed3pVAR.test6$FFR) - 1)),
+         main = "Pseudo Out of Sample (6m forecasts): 3p Part FED VAR",
          xlab = "",
          ylab = ""
          )
