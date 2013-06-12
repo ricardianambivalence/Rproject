@@ -64,6 +64,7 @@ LToil_y <- 100*(LToil / lag(LToil, 12) - 1)
 LToil_6mAR <- ((1 + rollapplyr(LToil_m/100, 6, mean))^12 - 1)*100
 LToil_3yrMax <- rollapplyr(LToil, 36, max)
 LToil_shock <- xts(pmax(0, log(LToil / lag(LToil_3yrMax,6))), order.by = index(LToil))
+names(LToil_shock) <- 'LToil_shock'
 
 PPIenergy <- PPICEM
 names(PPIenergy) <- 'PPIenergy'
@@ -85,9 +86,11 @@ if(index(index(last(PPIenergy)) < index(last(BRENT_m)))) {
 
 gas_3yrmax <- rollapplyr(GASREGW, 36, max)
 gasShock <- xts(pmax(0, log(GASREGW / lag(gas_3yrmax, 6))), order.by = index(GASREGW))
+names(gasShock) <- 'gasShock'
 
 PPIe_3yrMax <- rollapplyr(PPIe_extnd, 36, max)
 PPIe_shock <- xts(pmax(0, log(PPIe_extnd / lag(PPIe_extnd, 6))), order.by = tt_extnd)
+names(PPIe_shock) <- 'PPIe_shock'
 
 # plot(LToil_shock, las=1)
 # lines(PPIe_shock, col=3)
@@ -96,11 +99,15 @@ PPIe_shock <- xts(pmax(0, log(PPIe_extnd / lag(PPIe_extnd, 6))), order.by = tt_e
 # info crit -- set to FPE
 icT <- "FPE"
 
-# demand, FCI, inflatin, 3m bill
-VAR4frame <- cbind(CFNAI, FCI$NFCI, corePCE_6mAR, tbill3m$tbill3m)
+# demand, FCI, 3m bill
+VAR3frame <- cbind(CFNAI, FCI$NFCI, tbill3m$tbill3m)
+VAR3frame_3m <- rollapplyr(na.locf(VAR3frame), 3, colMeans)['19820301::20090331']
+
+# PPIe_shock, demand, FCI, 3m bill
+VAR4frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, tbill3m$tbill3m)
 VAR4frame_3m <- rollapplyr(na.locf(VAR4frame), 3, colMeans)['19820301::20090331']
 
-# demand, FCI, inflation, oil, 3m bill
+# PPIe_shock, demand, FCI, inflation, 3m bill
 VAR5frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, corePCE_6mAR, tbill3m$tbill3m)
 VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)['19820301::20090331']
 
@@ -108,8 +115,24 @@ VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)['19820301::20090331'
 
 # VAR modeling
 
+## {{{ three part VAR
+optLag3 <- findMaxVARLag(VAR3frame_3m, firstMax = 9, crit = paste0(icT, "(n)"))
 
-## {{{ four part VAR
+# {{{VAR test stuff -- rmsfe etc
+fed3VAR.test6 <- testVar(scale(VAR3frame_3m), skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+sumTestError.fed3_6m <- errTstVar(fed3VAR.test6)
+print(sumTestError.fed3_6m$r)
+
+# fed3VAR.test12 <- testVar(scale(VAR3frame_3m), skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+# sumTestError.fed3_12m <- errTstVar(fed3VAR.test12)
+# }}} close rmsfe
+fed3VAR.mod <- VAR(scale(VAR3frame_3m), p = optLag3, ic = icT)
+fed3VAR.mod2 <- VAR((VAR3frame_3m), p = optLag3, ic = icT)
+fed3VAR.pp <- predict(fed3VAR.mod2, n.ahead = 60)
+fed3VAR.irf <- irf(fed3VAR.mod2, n.ahead=48)
+# }}} close 3 part VAR
+
+## {{{ four part VAR -- added oil shocks
 optLag4 <- findMaxVARLag(VAR4frame_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
@@ -122,12 +145,11 @@ print(sumTestError.fed4_6m$r)
 # }}} close rmsfe
 fed4VAR.mod <- VAR(scale(VAR4frame_3m), p = optLag4, ic = icT)
 fed4VAR.mod2 <- VAR((VAR4frame_3m), p = optLag4, ic = icT)
-fed4VAR.pp <- predict(VAR(VAR4frame_3m, p = optLag4, ic = icT), n.ahead = 60)
+fed4VAR.pp <- predict(fed4VAR.mod2, n.ahead = 60)
 fed4VAR.irf <- irf(fed4VAR.mod2, n.ahead=48)
 # }}} close 4 part VAR
 
-# {{{ five part VAR - add in Oil
-
+# {{{ five part VAR - added 6mAR core PCE
 optLag5 <- findMaxVARLag(VAR5frame_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
@@ -138,8 +160,8 @@ print(sumTestError.fed5_6m$r)
 fed5VAR.test12 <- testVar(scale(VAR5frame_3m), skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed5_12m <- errTstVar(fed5VAR.test12)
 # }}} close rmsfe
-fed5VAR.mod <- VAR(scale(VAR5frame_3m), p = optLag5, ic = icT)
-fed5VAR.mod2 <- VAR((VAR4frame_3m), p = optLag5, ic = icT)
-fed5VAR.pp <- predict(VAR(VAR5frame_3m, p = optLag5, ic = icT), n.ahead = 60)
+fed5VAR.mod <- VAR(scale(VAR5frame_3m), p = 6, ic = icT)
+fed5VAR.mod2 <- VAR(VAR5frame_3m, p = optLag5, ic = icT)
+fed5VAR.pp <- predict(fed5VAR.mod2, n.ahead = 60)
 fed5VAR.irf <- irf(fed5VAR.mod2, n.ahead=48)
 # }}} close 5 part VAR
