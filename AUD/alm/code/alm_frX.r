@@ -312,8 +312,9 @@ DmatchLvl <- melt(data.frame(date = index(Dmatchy[xtsDateCut]),
 
 # level stack -- pt + ft
 gp_ftpt <- ggplot(subset(lvlN, variable %in% c('ft', 'pt')),
-                  aes(x = date, y = value, fill = variable)) +
+                  aes(x = date, y = value, color = variable, fill = variable)) +
                 theme_grey() +
+                scale_color_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 scale_fill_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 labs(title = "employment by type ('000k)") +
                 labs(y = NULL, x = NULL) +
@@ -478,8 +479,9 @@ dev.off()
 
 # all -- attachment N / UN / NILF
 gp_attachment <- ggplot(subset(ratesLvl_LT, variable %in% c('nPop', 'unPop', 'nilfPop')),
-                  aes(x = date, y = value, fill = variable)) +
+                  aes(x = date, y = value, color = variable, fill = variable)) +
                 theme_grey() +
+                scale_color_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 scale_fill_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 labs(title = "All -- attachment of the labour force") +
                 labs(y = NULL, x = NULL) +
@@ -493,8 +495,9 @@ dev.off()
 
 # male -- attachment N / UN / NILF
 gp_attachmentM <- ggplot(subset(ratesLvl_LT, variable %in% c('nPopM', 'unPopM', 'nilfPopM')),
-                  aes(x = date, y = value, fill = variable)) +
+                  aes(x = date, y = value, color = variable, fill = variable)) +
                 theme_grey() +
+                scale_color_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 scale_fill_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 labs(title = "Male -- attachment of the labour force") +
                 labs(y = NULL, x = NULL) +
@@ -508,8 +511,9 @@ dev.off()
 
 # female -- attachment N / UN / NILF
 gp_attachmentF <- ggplot(subset(ratesLvl_LT, variable %in% c('nPopF', 'unPopF', 'nilfPopF')),
-                  aes(x = date, y = value, fill = variable)) +
+                  aes(x = date, y = value, color = variable, fill = variable)) +
                 theme_grey() +
+                scale_color_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 scale_fill_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 labs(title = "Female -- attachment of the labour force") +
                 labs(y = NULL, x = NULL) +
