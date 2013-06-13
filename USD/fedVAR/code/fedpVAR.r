@@ -21,6 +21,7 @@ dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}}
 
+# {{{data stuff
 getData <- FALSE
 
 if(getData)
@@ -45,7 +46,7 @@ fedMid <- (coredata(DFEDTARU) + coredata(DFEDTARL))/2
 names(fedMid) <- 'fedFunds'
 FFR <- xts(rbind(coredata(DFEDTAR), fedMid), order.by = c(index(DFEDTAR), index(DFEDTARU)))
 names(FFR) <- 'FFR'
-FFR <- apply.monthly(na.locf(FFR), last, na.rm=TRUE)
+FFR <- apply.monthly(na.locf(FFR), last)
 index(FFR) <- dateSwitch(index(FFR), lastDay = FALSE)
 
 FCI <- apply.monthly(merge(NFCI, ANFCI), colMeans)
@@ -103,158 +104,164 @@ names(PPIe_shock) <- 'PPIe_shock'
 # plot(LToil_shock, las=1)
 # lines(PPIe_shock, col=3)
 # lines(gasShock, col=4)
+# }}} close data stuff
 
 # info crit -- set to FPE
 icT <- "FPE"
 
 # {{{ arrange data sets
+
+startEst <- "19821101"
+endEst <- "20090331"
+estRange <- paste0(startEst, "::", endEst)
+
 # demand, FCI, 3m bill
 VAR3frame <- cbind(CFNAI, FCI$NFCI, FFR)
-VAR3frame_3m <- rollapplyr(na.locf(VAR3frame), 3, colMeans)['19821101::20090331']
+VAR3frame_3m <- rollapplyr(na.locf(VAR3frame), 3, colMeans)
 
 # demand, FCI, 3m bill
 VAR3pframe <- cbind(CFNAI, corePCE_6mAR, FFR)
-VAR3pframe_3m <- rollapplyr(na.locf(VAR3pframe), 3, colMeans)['19821101::20090331']
+VAR3pframe_3m <- rollapplyr(na.locf(VAR3pframe), 3, colMeans)
 
 # demand, FCI, 3m bill
 VAR3urframe <- cbind(UNRATE, corePCE_6mAR, FFR)
-VAR3urframe_3m <- rollapplyr(na.locf(VAR3urframe), 3, colMeans)['19821101::20090331']
+VAR3urframe_3m <- rollapplyr(na.locf(VAR3urframe), 3, colMeans)
 
 # PPIe_shock, demand, FCI, 3m bill
 VAR4frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, FFR)
-VAR4frame_3m <- rollapplyr(na.locf(VAR4frame), 3, colMeans)['19821101::20090331']
+VAR4frame_3m <- rollapplyr(na.locf(VAR4frame), 3, colMeans)
 
 # demand, FCI, cPCE, 3m bill
 VAR4pframe <- cbind(CFNAI, FCI$NFCI, corePCE_6mAR, FFR)
-VAR4pframe_3m <- rollapplyr(na.locf(VAR4pframe), 3, colMeans)['19821101::20090331']
+VAR4pframe_3m <- rollapplyr(na.locf(VAR4pframe), 3, colMeans)
 
 # PPIe_shock, demand, FCI, inflation, 3m bill
 VAR5frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, corePCE_6mAR, FFR)
-VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)['19821101::20090331']
+VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)
 
 # demand, UR, FCI, inflation, 3m bill
 VAR5urframe <- cbind(CFNAI, UNRATE, FCI$NFCI, corePCE_6mAR, FFR)
-VAR5urframe_3m <- rollapplyr(na.locf(VAR5urframe), 3, colMeans)['19821101::20090331']
+VAR5urframe_3m <- rollapplyr(na.locf(VAR5urframe), 3, colMeans)
 # }}}close data arrange
 # ==> TODO -- email the dudes at the chicago fed about the FCI in a VAR ... adj or no?
 
 # VAR modeling
 
 ## {{{ three part VAR
-optLag3 <- findMaxVARLag(VAR3frame_3m, firstMax = 9, crit = paste0(icT, "(n)"))
+optLag3 <- findMaxVARLag(VAR3frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
-fed3VAR.test6 <- testVar(VAR3frame_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+fed3VAR.test6 <- testVar(VAR3frame_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
 sumTestError.fed3_6m <- errTstVar(fed3VAR.test6)
 # print(sumTestError.fed3_6m$r)
 
-fed3VAR.test12 <- testVar(VAR3frame_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+fed3VAR.test12 <- testVar(VAR3frame_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed3_12m <- errTstVar(fed3VAR.test12)
 # }}} close rmsfe
-fed3VAR.mod <- VAR(scale(VAR3frame_3m), p = optLag3, ic = icT)
-fed3VAR.mod2 <- VAR((VAR3frame_3m), p = optLag3, ic = icT)
+fed3VAR.mod <- VAR(scale(VAR3frame_3m[estRange]), p = optLag3, ic = icT)
+fed3VAR.mod2 <- VAR((VAR3frame_3m[estRange]), p = optLag3, ic = icT)
 fed3VAR.pp <- predict(fed3VAR.mod2, n.ahead = 60)
 fed3VAR.irf <- irf(fed3VAR.mod2, n.ahead=48)
 # }}} close 3 part VAR
 
 ## {{{ three part VAR: UR p cash
-optLag3 <- findMaxVARLag(VAR3urframe_3m, firstMax = 9, crit = paste0(icT, "(n)"))
+optLag3 <- findMaxVARLag(VAR3urframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
-fed3urVAR.test6 <- testVar(VAR3urframe_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+fed3urVAR.test6 <- testVar(VAR3urframe_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
 sumTestError.fed3ur_6m <- errTstVar(fed3urVAR.test6)
 # print(sumTestError.fed3_6m$r)
 
-fed3urVAR.test12 <- testVar(VAR3urframe_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+fed3urVAR.test12 <- testVar(VAR3urframe_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed3ur_12m <- errTstVar(fed3urVAR.test12)
 # }}} close rmsfe
-fed3urVAR.mod <- VAR(scale(VAR3urframe_3m), p = optLag3, ic = icT)
-fed3urVAR.mod2 <- VAR((VAR3urframe_3m), p = optLag3, ic = icT)
+fed3urVAR.mod <- VAR(scale(VAR3urframe_3m[estRange]), p = optLag3, ic = icT)
+fed3urVAR.mod2 <- VAR((VAR3urframe_3m[estRange]), p = optLag3, ic = icT)
 fed3urVAR.pp <- predict(fed3urVAR.mod2, n.ahead = 60)
 fed3urVAR.irf <- irf(fed3urVAR.mod2, n.ahead=48)
 # }}} close 3ur part VAR
 
 ## {{{ three part VAR: with p ex oil FCI
-optLag3p <- findMaxVARLag(VAR3pframe_3m, firstMax = 9, crit = paste0(icT, "(n)"))
+optLag3p <- findMaxVARLag(VAR3pframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
-fed3pVAR.test6 <- testVar(VAR3pframe_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+fed3pVAR.test6 <- testVar(VAR3pframe_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
 sumTestError.fed3p_6m <- errTstVar(fed3pVAR.test6)
 # print(sumTestError.fed3_6m$r)
 
-fed3pVAR.test12 <- testVar(VAR3pframe_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+fed3pVAR.test12 <- testVar(VAR3pframe_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed3p_12m <- errTstVar(fed3pVAR.test12)
 # }}} close rmsfe
-fed3pVAR.mod <- VAR(scale(VAR3pframe_3m), p = optLag3, ic = icT)
-fed3pVAR.mod2 <- VAR((VAR3pframe_3m), p = optLag3, ic = icT)
+fed3pVAR.mod <- VAR(scale(VAR3pframe_3m[estRange]), p = optLag3, ic = icT)
+fed3pVAR.mod2 <- VAR((VAR3pframe_3m[estRange]), p = optLag3, ic = icT)
 fed3pVAR.pp <- predict(fed3pVAR.mod2, n.ahead = 60)
 fed3pVAR.irf <- irf(fed3pVAR.mod2, n.ahead=48)
 # }}} close 3p part VAR
 
 ## {{{ four part VAR -- added oil shocks
-optLag4 <- findMaxVARLag(VAR4frame_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
+optLag4 <- findMaxVARLag(VAR4frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
-fed4VAR.test6 <- testVar(VAR4frame_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+fed4VAR.test6 <- testVar(VAR4frame_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
 sumTestError.fed4_6m <- errTstVar(fed4VAR.test6)
 # print(sumTestError.fed4_6m$r)
 
-fed4VAR.test12 <- testVar(VAR4frame_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+fed4VAR.test12 <- testVar(VAR4frame_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed4_12m <- errTstVar(fed4VAR.test12)
 # }}} close rmsfe
-fed4VAR.mod <- VAR(scale(VAR4frame_3m), p = optLag4, ic = icT)
-fed4VAR.mod2 <- VAR((VAR4frame_3m), p = optLag4, ic = icT)
+fed4VAR.mod <- VAR(scale(VAR4frame_3m[estRange]), p = optLag4, ic = icT)
+fed4VAR.mod2 <- VAR((VAR4frame_3m[estRange]), p = optLag4, ic = icT)
 fed4VAR.pp <- predict(fed4VAR.mod2, n.ahead = 60)
 fed4VAR.irf <- irf(fed4VAR.mod2, n.ahead=48)
 # }}} close 4 part VAR
 
 ## {{{ four part VAR -- corePCE not oilShocks
-optLag4p <- findMaxVARLag(VAR4pframe_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
+optLag4p <- findMaxVARLag(VAR4pframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
-fed4pVAR.test6 <- testVar(VAR4pframe_3m, skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+fed4pVAR.test6 <- testVar(VAR4pframe_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
 sumTestError.fed4p_6m <- errTstVar(fed4pVAR.test6)
 # print(sumTestError.fed4_6m$r)
 
-fed4pVAR.test12 <- testVar(VAR4pframe_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+fed4pVAR.test12 <- testVar(VAR4pframe_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed4p_12m <- errTstVar(fed4pVAR.test12)
 # }}} close rmsfe
-fed4pVAR.mod <- VAR(scale(VAR4pframe_3m), p = optLag4p, ic = icT)
-fed4pVAR.mod2 <- VAR((VAR4pframe_3m), p = optLag4p, ic = icT)
+fed4pVAR.mod <- VAR(scale(VAR4pframe_3m[estRange]), p = optLag4p, ic = icT)
+fed4pVAR.mod2 <- VAR((VAR4pframe_3m[estRange]), p = optLag4p, ic = icT)
 fed4pVAR.pp <- predict(fed4pVAR.mod2, n.ahead = 60)
 fed4pVAR.irf <- irf(fed4pVAR.mod2, n.ahead=48)
 # }}} close 4p part VAR
 
 # {{{ five part VAR - added 6mAR core PCE
-optLag5 <- findMaxVARLag(VAR5frame_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
+optLag5 <- findMaxVARLag(VAR5frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
-fed5VAR.test6 <- testVar(VAR5frame_3m, skip = 94, nAhead = 6, Vlag = 9, IC = icT)
+fed5VAR.test6 <- testVar(VAR5frame_3m[estRange], skip = 94, nAhead = 6, Vlag = 9, IC = icT)
 sumTestError.fed5_6m <- errTstVar(fed5VAR.test6)
 # print(sumTestError.fed5_6m$r)
 
-fed5VAR.test12 <- testVar(VAR5frame_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+fed5VAR.test12 <- testVar(VAR5frame_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed5_12m <- errTstVar(fed5VAR.test12)
 # }}} close rmsfe
-fed5VAR.mod <- VAR(scale(VAR5frame_3m), p = 6, ic = icT)
-fed5VAR.mod2 <- VAR(VAR5frame_3m, p = optLag5, ic = icT)
+fed5VAR.mod <- VAR(scale(VAR5frame_3m[estRange]), p = 6, ic = icT)
+fed5VAR.mod2 <- VAR(VAR5frame_3m[estRange], p = optLag5, ic = icT)
 fed5VAR.pp <- predict(fed5VAR.mod2, n.ahead = 60)
 fed5VAR.irf <- irf(fed5VAR.mod2, n.ahead=48)
 # }}} close 5 part VAR
 
 # {{{ five part VAR - CF-UR-FCI-PCE-FFR
-optLag5ur <- findMaxVARLag(VAR5urframe_3m, firstMax = 9, crit = paste0(icT, "(n)")) # 5
+optLag5ur <- findMaxVARLag(VAR5urframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
-fed5urVAR.test6 <- testVar(VAR5urframe_3m, skip = 94, nAhead = 6, Vlag = 9, IC = icT)
+fed5urVAR.test6 <- testVar(VAR5urframe_3m[estRange], skip = 94, nAhead = 6, Vlag = 9, IC = icT)
 sumTestError.fed5ur_6m <- errTstVar(fed5urVAR.test6)
 # print(sumTestError.fed5_6m$r)
 
-fed5urVAR.test12 <- testVar(VAR5urframe_3m, skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+fed5urVAR.test12 <- testVar(VAR5urframe_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
 sumTestError.fed5ur_12m <- errTstVar(fed5urVAR.test12)
 # }}} close rmsfe
-fed5urVAR.mod <- VAR(scale(VAR5urframe_3m), p = 6, ic = icT)
-fed5urVAR.mod2 <- VAR(VAR5urframe_3m, p = optLag5, ic = icT)
+fed5urVAR.mod <- VAR(scale(VAR5urframe_3m[estRange]), p = 6, ic = icT)
+fed5urVAR.mod2 <- VAR(VAR5urframe_3m[estRange], p = optLag5, ic = icT)
 fed5urVAR.pp <- predict(fed5urVAR.mod2, n.ahead = 60)
 fed5urVAR.irf <- irf(fed5urVAR.mod2, n.ahead=48)
 # }}} close 5 part VAR CF-UR-FCI-PCE-FFR
@@ -372,3 +379,102 @@ plot.zoo(fed5urVAR.test6$FFR['1993::'],
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 # }}}close spider plots
+
+# {{{ prediction out of sample
+
+varsNewData <- function(varsMODEL, varsDATA, projFWD = 1)
+{
+    varsDATA_pp <- varsDATA  # make a frame to extend
+# make the coeff vectors
+    for (i in seq_along(get('varresult', varsMODEL)))
+         {
+         assign(paste0('modCoeffs_v', i),
+                get('varresult', varsMODEL)[[i]]$coeff
+                )
+         }
+# find max lag length -- from coeff vector
+    maxLag <- max(as.numeric(unlist(regmatches(names(modCoeffs_v1),
+                                               gregexpr('\\(?[0-9]+',
+                                                        names(modCoeffs_v1))))))
+    n = 1
+# make an expanded DF so you can %*% using coeff matrix
+    while (n < (1+projFWD))
+    {
+        env4step <- new.env()
+        expandedDF <- varsDATA_pp # the df we build up
+        for (j in 1:(maxLag-1))
+        {
+            expandedDF <- merge(expandedDF, lag(varsDATA_pp, j))
+        }
+        expandedDF$const <- 1
+        for (k in seq_along(get('varresult', varsMODEL)))
+        {
+            assign(paste0('v', k, '_pp'),
+                   tail(expandedDF, 1) %*% get(paste0('modCoeffs_v', k)),
+                   envir = env4step)
+        }
+# join the forecasts together
+        vvlist = list() # an empty list to contain the variable names
+        for (l in seq_along(get('varresult', varsMODEL)))
+        {
+            vvlist <- c(vvlist, paste0('v', l, '_pp'))
+            l = l + 1
+        } # this loop puts the names into the list ... use environments?
+        print(vvlist)
+# now put it together
+        nextDate <- seq(last(index(varsDATA_pp)), by = 'mon', length.out = 2)[-1]
+        newRow <- xts(do.call(cbind, lapply(vvlist, get, envir = env4step)),
+                      order.by = nextDate)
+        names(newRow) <- names(varsDATA_pp)
+        varsDATA_pp <- rbind(varsDATA_pp, newRow)
+        rm(expandedDF)
+        rm(list = ls(env4step), envir = env4step)
+        n = n + 1
+    }
+    return(varsDATA_pp)
+}
+
+testProj <- varsNewData(fed5urVAR.mod2, VAR5urframe_3m, projFWD = 36)
+
+
+
+
+
+
+
+# extract coefficient matrices
+modCoeffs_v1 <- fed3VAR.mod2$varresult[[1]]$coeff
+modCoeffs_v2 <- fed3VAR.mod2$varresult[[2]]$coeff
+modCoeffs_v3 <- fed3VAR.mod2$varresult[[3]]$coeff
+VAR3frame_3mpp <- VAR3frame_3m
+variableNames <- names(VAR3frame_3m)
+
+# find max lag length of model
+maxLag <- max(as.numeric(unlist(regmatches(names(modCoeffs_v1),
+                                           gregexpr('\\(?[0-9]+',
+                                                    names(modCoeffs_v1))))))
+
+# make an expanded DF so you can %*% using coeff matrix
+expandedDF <- VAR3frame_3mpp
+for (i in 1:(maxLag-1)) {
+    expandedDF <- merge(expandedDF, lag(VAR3frame_3m, i))
+}
+expandedDF$const <- 1
+
+nextDate <- seq(last(index(VAR3frame_3m)), by = 'mon', length.out = 2)[-1]
+
+v1_pp <- tail(expandedDF,1) %*% modCoeffs_v1
+v2_pp <- tail(expandedDF,1) %*% modCoeffs_v2
+v3_pp <- tail(expandedDF,1) %*% modCoeffs_v3
+
+newRow <- xts(cbind(v1_pp, v2_pp, v3_pp), order.by = nextDate)
+names(newRow) <- variableNames
+VAR3frame_3mpp <- rbind(VAR3frame_3mpp, newRow)
+
+vvlist = list()
+j = 1
+while (j < 4) {
+    vvlist <- c(vvlist, paste0('v', j, '_pp'))
+    j = j + 1
+}
+
