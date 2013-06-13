@@ -142,6 +142,10 @@ VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)
 # demand, UR, FCI, inflation, 3m bill
 VAR5urframe <- cbind(CFNAI, UNRATE, FCI$NFCI, corePCE_6mAR, FFR)
 VAR5urframe_3m <- rollapplyr(na.locf(VAR5urframe), 3, colMeans)
+
+# PPIe_shock, demand, UR, FCI, inflation, 3m bill
+VAR6frame <- cbind(PPIe_shock, CFNAI, UNRATE, FCI$NFCI, corePCE_6mAR, FFR)
+VAR6frame_3m <- rollapplyr(na.locf(VAR6frame), 3, colMeans)
 # }}}close data arrange
 # ==> TODO -- email the dudes at the chicago fed about the FCI in a VAR ... adj or no?
 
@@ -266,6 +270,23 @@ fed5urVAR.pp <- predict(fed5urVAR.mod2, n.ahead = 60)
 fed5urVAR.irf <- irf(fed5urVAR.mod2, n.ahead=48)
 # }}} close 5 part VAR CF-UR-FCI-PCE-FFR
 
+# {{{ 6 part VAR - PPIe_shock-CF-UR-FCI-PCE-FFR
+optLag6 <- findMaxVARLag(VAR6frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) #
+
+# {{{VAR test stuff -- rmsfe etc
+fed6VAR.test6 <- testVar(VAR6frame_3m[estRange], skip = 94, nAhead = 6, Vlag = 9, IC = icT)
+sumTestError.fed6_6m <- errTstVar(fed6VAR.test6)
+# print(sumTestError.fed6_6m$r)
+
+fed6VAR.test12 <- testVar(VAR6frame_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+sumTestError.fed6_12m <- errTstVar(fed6VAR.test12)
+# }}} close rmsfe
+fed6VAR.mod <- VAR(scale(VAR6frame_3m[estRange]), p = 6, ic = icT)
+fed6VAR.mod2 <- VAR(VAR6frame_3m[estRange], p = optLag6, ic = icT)
+fed6VAR.pp <- predict(fed6VAR.mod2, n.ahead = 60)
+fed6VAR.irf <- irf(fed6VAR.mod2, n.ahead=48)
+# }}} close 6 part VAR PPIe-CF-UR-FCI-PCE-FFR
+
 # {{{ spider POOS plots
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3 VAR
@@ -378,6 +399,23 @@ plot.zoo(fed5urVAR.test6$FFR['1993::'],
          )
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 6 VAR
+pdf(file.path(plotPATH, "fed6VAR.pdf"))
+plot.zoo(fed6VAR.test6$FFR['1993::'],
+         screen=1,
+         col=c(1, rep(8, ncol(fed6VAR.test6$FFR)-1)),
+         las=1,
+         lwd = c(3, rep(1, ncol(fed6VAR.test6$FFR) - 1)),
+         type = c('s', rep('l', ncol(fed6VAR.test6$FFR) - 1)),
+         main = "Pseudo Out of Sample (6m forecasts): 6 Part FED VAR",
+         xlab = "",
+         ylab = ""
+         )
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
 # }}}close spider plots
 
 # {{{ prediction out of sample
@@ -434,5 +472,5 @@ varsNewData <- function(varsMODEL, varsDATA, projFWD = 1)
     return(varsDATA_pp)
 }
 
-testProj <- varsNewData(fed5urVAR.mod2, VAR5urframe_3m, projFWD = 36)
+testProj <- varsNewData(fed6VAR.mod2, VAR6frame_3m, projFWD = 36)
 
