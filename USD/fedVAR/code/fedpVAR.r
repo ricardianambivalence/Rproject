@@ -151,7 +151,7 @@ VAR6frame_3m <- rollapplyr(na.locf(VAR6frame), 3, colMeans)
 
 # VAR modeling
 
-## {{{ three part VAR
+## {{{ fed3VAR.mod + VAR3frame_3m
 optLag3 <- findMaxVARLag(VAR3frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
@@ -168,7 +168,7 @@ fed3VAR.pp <- predict(fed3VAR.mod2, n.ahead = 60)
 fed3VAR.irf <- irf(fed3VAR.mod2, n.ahead=48)
 # }}} close 3 part VAR
 
-## {{{ three part VAR: UR p cash
+## {{{ fed3urVAR.mod + VAR3urframe_3m
 optLag3 <- findMaxVARLag(VAR3urframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
@@ -185,7 +185,7 @@ fed3urVAR.pp <- predict(fed3urVAR.mod2, n.ahead = 60)
 fed3urVAR.irf <- irf(fed3urVAR.mod2, n.ahead=48)
 # }}} close 3ur part VAR
 
-## {{{ three part VAR: with p ex oil FCI
+## {{{ fed3VAR.mod + VAR3pframe_3m
 optLag3p <- findMaxVARLag(VAR3pframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
@@ -202,7 +202,7 @@ fed3pVAR.pp <- predict(fed3pVAR.mod2, n.ahead = 60)
 fed3pVAR.irf <- irf(fed3pVAR.mod2, n.ahead=48)
 # }}} close 3p part VAR
 
-## {{{ four part VAR -- added oil shocks
+## {{{ fed4VAR.mod + VAR4frame_3m
 optLag4 <- findMaxVARLag(VAR4frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
@@ -219,7 +219,7 @@ fed4VAR.pp <- predict(fed4VAR.mod2, n.ahead = 60)
 fed4VAR.irf <- irf(fed4VAR.mod2, n.ahead=48)
 # }}} close 4 part VAR
 
-## {{{ four part VAR -- corePCE not oilShocks
+## {{{ fed4pVAR.mod + VAR4pframe_3m
 optLag4p <- findMaxVARLag(VAR4pframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
@@ -236,7 +236,7 @@ fed4pVAR.pp <- predict(fed4pVAR.mod2, n.ahead = 60)
 fed4pVAR.irf <- irf(fed4pVAR.mod2, n.ahead=48)
 # }}} close 4p part VAR
 
-# {{{ five part VAR - added 6mAR core PCE
+# {{{ fed5VAR.mod + VAR5frame_3m
 optLag5 <- findMaxVARLag(VAR5frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
@@ -253,7 +253,7 @@ fed5VAR.pp <- predict(fed5VAR.mod2, n.ahead = 60)
 fed5VAR.irf <- irf(fed5VAR.mod2, n.ahead=48)
 # }}} close 5 part VAR
 
-# {{{ five part VAR - CF-UR-FCI-PCE-FFR
+# {{{ fed5urVAR.mod + VAR5urframe_3m
 optLag5ur <- findMaxVARLag(VAR5urframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
@@ -270,7 +270,7 @@ fed5urVAR.pp <- predict(fed5urVAR.mod2, n.ahead = 60)
 fed5urVAR.irf <- irf(fed5urVAR.mod2, n.ahead=48)
 # }}} close 5 part VAR CF-UR-FCI-PCE-FFR
 
-# {{{ 6 part VAR - PPIe_shock-CF-UR-FCI-PCE-FFR
+# {{{ fed6VAR.mod + VAR6frame_3m
 optLag6 <- findMaxVARLag(VAR6frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) #
 
 # {{{VAR test stuff -- rmsfe etc
@@ -419,7 +419,6 @@ dev.off()
 # }}}close spider plots
 
 # {{{ prediction with new data
-
 
 testProj <- varsPredictNewData(fed6VAR.mod2, VAR6frame_3m, projFWD = 36)
 
