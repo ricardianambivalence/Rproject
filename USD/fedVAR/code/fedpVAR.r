@@ -147,11 +147,12 @@ VAR5urframe_3m <- rollapplyr(na.locf(VAR5urframe), 3, colMeans)
 VAR6frame <- cbind(PPIe_shock, CFNAI, UNRATE, FCI$NFCI, corePCE_6mAR, FFR)
 VAR6frame_3m <- rollapplyr(na.locf(VAR6frame), 3, colMeans)
 # }}}close data arrange
+
 # ==> TODO -- email the dudes at the chicago fed about the FCI in a VAR ... adj or no?
 
 # VAR modeling
 
-## {{{ fed3VAR.mod + VAR3frame_3m
+## {{{ fed3VAR.mod + VAR3frame_3m :: D-FCI-FFR
 optLag3 <- findMaxVARLag(VAR3frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
@@ -168,7 +169,7 @@ fed3VAR.pp <- predict(fed3VAR.mod2, n.ahead = 60)
 fed3VAR.irf <- irf(fed3VAR.mod2, n.ahead=48)
 # }}} close 3 part VAR
 
-## {{{ fed3urVAR.mod + VAR3urframe_3m
+## {{{ fed3urVAR.mod + VAR3urframe_3m :: D-cCPE-FFR
 optLag3 <- findMaxVARLag(VAR3urframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
@@ -185,7 +186,7 @@ fed3urVAR.pp <- predict(fed3urVAR.mod2, n.ahead = 60)
 fed3urVAR.irf <- irf(fed3urVAR.mod2, n.ahead=48)
 # }}} close 3ur part VAR
 
-## {{{ fed3VAR.mod + VAR3pframe_3m
+## {{{ fed3VAR.mod + VAR3pframe_3m :: UR-cCPE-FFR
 optLag3p <- findMaxVARLag(VAR3pframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
 
 # {{{VAR test stuff -- rmsfe etc
@@ -202,7 +203,7 @@ fed3pVAR.pp <- predict(fed3pVAR.mod2, n.ahead = 60)
 fed3pVAR.irf <- irf(fed3pVAR.mod2, n.ahead=48)
 # }}} close 3p part VAR
 
-## {{{ fed4VAR.mod + VAR4frame_3m
+## {{{ fed4VAR.mod + VAR4frame_3m :: PPIe-D-FCI-FFR
 optLag4 <- findMaxVARLag(VAR4frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
@@ -219,7 +220,7 @@ fed4VAR.pp <- predict(fed4VAR.mod2, n.ahead = 60)
 fed4VAR.irf <- irf(fed4VAR.mod2, n.ahead=48)
 # }}} close 4 part VAR
 
-## {{{ fed4pVAR.mod + VAR4pframe_3m
+## {{{ fed4pVAR.mod + VAR4pframe_3m :: D-FCI-cPCE-FFR
 optLag4p <- findMaxVARLag(VAR4pframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
@@ -236,7 +237,7 @@ fed4pVAR.pp <- predict(fed4pVAR.mod2, n.ahead = 60)
 fed4pVAR.irf <- irf(fed4pVAR.mod2, n.ahead=48)
 # }}} close 4p part VAR
 
-# {{{ fed5VAR.mod + VAR5frame_3m
+# {{{ fed5VAR.mod + VAR5frame_3m :: PPIe-D-FCI-cCPE-FFR
 optLag5 <- findMaxVARLag(VAR5frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
@@ -253,7 +254,7 @@ fed5VAR.pp <- predict(fed5VAR.mod2, n.ahead = 60)
 fed5VAR.irf <- irf(fed5VAR.mod2, n.ahead=48)
 # }}} close 5 part VAR
 
-# {{{ fed5urVAR.mod + VAR5urframe_3m
+# {{{ fed5urVAR.mod + VAR5urframe_3m :: D-UR-FCI-cPCE-FFR
 optLag5ur <- findMaxVARLag(VAR5urframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
 # {{{VAR test stuff -- rmsfe etc
@@ -270,7 +271,7 @@ fed5urVAR.pp <- predict(fed5urVAR.mod2, n.ahead = 60)
 fed5urVAR.irf <- irf(fed5urVAR.mod2, n.ahead=48)
 # }}} close 5 part VAR CF-UR-FCI-PCE-FFR
 
-# {{{ fed6VAR.mod + VAR6frame_3m
+# {{{ fed6VAR.mod + VAR6frame_3m :: PPIe-D-UR-FCI-cPCE-FFR
 optLag6 <- findMaxVARLag(VAR6frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) #
 
 # {{{VAR test stuff -- rmsfe etc
