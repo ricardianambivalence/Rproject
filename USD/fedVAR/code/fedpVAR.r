@@ -21,8 +21,8 @@ dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}}
 
-# {{{data stuff
 getData <- FALSE
+# {{{data stuff
 
 if(getData)
 {
@@ -418,59 +418,10 @@ dev.off()
 
 # }}}close spider plots
 
-# {{{ prediction out of sample
+# {{{ prediction with new data
 
-varsNewData <- function(varsMODEL, varsDATA, projFWD = 1)
-{
-    varsDATA_pp <- varsDATA  # make a frame to extend
-# make the coeff vectors
-    for (i in seq_along(get('varresult', varsMODEL)))
-         {
-         assign(paste0('modCoeffs_v', i),
-                get('varresult', varsMODEL)[[i]]$coeff
-                )
-         }
-# find max lag length -- from coeff vector
-    maxLag <- max(as.numeric(unlist(regmatches(names(modCoeffs_v1),
-                                               gregexpr('\\(?[0-9]+',
-                                                        names(modCoeffs_v1))))))
-    n = 1
-# make an expanded DF so you can %*% using coeff matrix
-    while (n < (1+projFWD))
-    {
-        env4step <- new.env()
-        expandedDF <- varsDATA_pp # the df we build up
-        for (j in 1:(maxLag-1))
-        {
-            expandedDF <- merge(expandedDF, lag(varsDATA_pp, j))
-        }
-        expandedDF$const <- 1
-        for (k in seq_along(get('varresult', varsMODEL)))
-        {
-            assign(paste0('v', k, '_pp'),
-                   tail(expandedDF, 1) %*% get(paste0('modCoeffs_v', k)),
-                   envir = env4step)
-        }
-# join the forecasts together
-        vvlist = list() # an empty list to contain the variable names
-        for (l in seq_along(get('varresult', varsMODEL)))
-        {
-            vvlist <- c(vvlist, paste0('v', l, '_pp'))
-            l = l + 1
-        } # this loop puts the names into the list ... use environments?
-        print(vvlist)
-# now put it together
-        nextDate <- seq(last(index(varsDATA_pp)), by = 'mon', length.out = 2)[-1]
-        newRow <- xts(do.call(cbind, lapply(vvlist, get, envir = env4step)),
-                      order.by = nextDate)
-        names(newRow) <- names(varsDATA_pp)
-        varsDATA_pp <- rbind(varsDATA_pp, newRow)
-        rm(expandedDF)
-        rm(list = ls(env4step), envir = env4step)
-        n = n + 1
-    }
-    return(varsDATA_pp)
-}
 
-testProj <- varsNewData(fed6VAR.mod2, VAR6frame_3m, projFWD = 36)
+testProj <- varsPredictNewData(fed6VAR.mod2, VAR6frame_3m, projFWD = 36)
+
+# }}} close prediction with new data
 
