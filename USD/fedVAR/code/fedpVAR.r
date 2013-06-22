@@ -22,6 +22,7 @@ plotPATH <- file.path(projPATH, "plot")
 # }}}
 
 getData <- TRUE
+
 # {{{data stuff
 
 if(getData)
@@ -110,9 +111,6 @@ names(PPIe_shock) <- 'PPIe_shock'
 # lines(gasShock, col=4)
 # }}} close data stuff
 
-# info crit -- set to FPE
-icT <- "FPE"
-
 # {{{ arrange data sets
 
 startEst <- "19821101"
@@ -192,160 +190,24 @@ VAR6frame_3m <- rollapplyr(na.locf(VAR6frame), 3, colMeans)
 
 # ==> TODO -- email the dudes at the chicago fed about the FCI in a VAR ... adj or no?
 
-# VAR modeling
+# {{{ VAR modeling
 
-## {{{ fed3VAR.mod + VAR3frame_3m :: D-FCI-FFR
-optLag3 <- findMaxVARLag(VAR3frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
-
-# {{{VAR test stuff -- rmsfe etc
-fed3VAR.test6 <- testVar(VAR3frame_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
-sumTestError.fed3_6m <- errTstVar(fed3VAR.test6)
-# print(sumTestError.fed3_6m$r)
-
-fed3VAR.test12 <- testVar(VAR3frame_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-sumTestError.fed3_12m <- errTstVar(fed3VAR.test12)
-# }}} close rmsfe
-fed3VAR.mod <- VAR(scale(VAR3frame_3m[estRange]), p = optLag3, ic = icT)
-fed3VAR.mod2 <- VAR((VAR3frame_3m[estRange]), p = optLag3, ic = icT)
-fed3VAR.pp <- predict(fed3VAR.mod2, n.ahead = 60)
-fed3VAR.irf <- irf(fed3VAR.mod2, n.ahead=48)
-# }}} close 3 part VAR
-
-## {{{ fed3urVAR.mod + VAR3urframe_3m :: D-cCPE-FFR
-optLag3 <- findMaxVARLag(VAR3urframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
-
-# {{{VAR test stuff -- rmsfe etc
-fed3urVAR.test6 <- testVar(VAR3urframe_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
-sumTestError.fed3ur_6m <- errTstVar(fed3urVAR.test6)
-# print(sumTestError.fed3_6m$r)
-
-fed3urVAR.test12 <- testVar(VAR3urframe_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-sumTestError.fed3ur_12m <- errTstVar(fed3urVAR.test12)
-# }}} close rmsfe
-fed3urVAR.mod <- VAR(scale(VAR3urframe_3m[estRange]), p = optLag3, ic = icT)
-fed3urVAR.mod2 <- VAR((VAR3urframe_3m[estRange]), p = optLag3, ic = icT)
-fed3urVAR.pp <- predict(fed3urVAR.mod2, n.ahead = 60)
-fed3urVAR.irf <- irf(fed3urVAR.mod2, n.ahead=48)
-# }}} close 3ur part VAR
-
-## {{{ fed3VAR.mod + VAR3pframe_3m :: UR-cCPE-FFR
-optLag3p <- findMaxVARLag(VAR3pframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)"))
-
-# {{{VAR test stuff -- rmsfe etc
-fed3pVAR.test6 <- testVar(VAR3pframe_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
-sumTestError.fed3p_6m <- errTstVar(fed3pVAR.test6)
-# print(sumTestError.fed3_6m$r)
-
-fed3pVAR.test12 <- testVar(VAR3pframe_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-sumTestError.fed3p_12m <- errTstVar(fed3pVAR.test12)
-# }}} close rmsfe
-fed3pVAR.mod <- VAR(scale(VAR3pframe_3m[estRange]), p = optLag3, ic = icT)
-fed3pVAR.mod2 <- VAR((VAR3pframe_3m[estRange]), p = optLag3, ic = icT)
-fed3pVAR.pp <- predict(fed3pVAR.mod2, n.ahead = 60)
-fed3pVAR.irf <- irf(fed3pVAR.mod2, n.ahead=48)
-# }}} close 3p part VAR
-
-## {{{ fed4VAR.mod + VAR4frame_3m :: PPIe-D-FCI-FFR
-optLag4 <- findMaxVARLag(VAR4frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
-
-# {{{VAR test stuff -- rmsfe etc
-fed4VAR.test6 <- testVar(VAR4frame_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
-sumTestError.fed4_6m <- errTstVar(fed4VAR.test6)
-# print(sumTestError.fed4_6m$r)
-
-fed4VAR.test12 <- testVar(VAR4frame_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-sumTestError.fed4_12m <- errTstVar(fed4VAR.test12)
-# }}} close rmsfe
-fed4VAR.mod <- VAR(scale(VAR4frame_3m[estRange]), p = optLag4, ic = icT)
-fed4VAR.mod2 <- VAR((VAR4frame_3m[estRange]), p = optLag4, ic = icT)
-fed4VAR.pp <- predict(fed4VAR.mod2, n.ahead = 60)
-fed4VAR.irf <- irf(fed4VAR.mod2, n.ahead=48)
-# }}} close 4 part VAR
-
-## {{{ fed4pVAR.mod + VAR4pframe_3m :: D-FCI-cPCE-FFR
-optLag4p <- findMaxVARLag(VAR4pframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
-
-# {{{VAR test stuff -- rmsfe etc
-fed4pVAR.test6 <- testVar(VAR4pframe_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
-sumTestError.fed4p_6m <- errTstVar(fed4pVAR.test6)
-# print(sumTestError.fed4_6m$r)
-
-fed4pVAR.test12 <- testVar(VAR4pframe_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-sumTestError.fed4p_12m <- errTstVar(fed4pVAR.test12)
-# }}} close rmsfe
-fed4pVAR.mod <- VAR(scale(VAR4pframe_3m[estRange]), p = optLag4p, ic = icT)
-fed4pVAR.mod2 <- VAR((VAR4pframe_3m[estRange]), p = optLag4p, ic = icT)
-fed4pVAR.pp <- predict(fed4pVAR.mod2, n.ahead = 60)
-fed4pVAR.irf <- irf(fed4pVAR.mod2, n.ahead=48)
-# }}} close 4p part VAR
-
-## {{{ fed4urVAR.mod + VAR4urframe_3m :: D-UR-FCI-FFR
-optLag4ur <- findMaxVARLag(VAR4urframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
-
-# {{{VAR test stuff -- rmsfe etc
-fed4urVAR.test6 <- testVar(VAR4urframe_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
-sumTestError.fed4ur_6m <- errTstVar(fed4urVAR.test6)
-# print(sumTestError.fed4_6m$r)
-
-fed4urVAR.test12 <- testVar(VAR4urframe_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-sumTestError.fed4ur_12m <- errTstVar(fed4urVAR.test12)
-# }}} close rmsfe
-fed4urVAR.mod <- VAR(scale(VAR4urframe_3m[estRange]), p = optLag4ur, ic = icT)
-fed4urVAR.mod2 <- VAR((VAR4urframe_3m[estRange]), p = optLag4ur, ic = icT)
-fed4urVAR.pp <- predict(fed4urVAR.mod2, n.ahead = 60)
-fed4urVAR.irf <- irf(fed4urVAR.mod2, n.ahead=48)
-# }}} close 4ur part VAR
-
-# {{{ fed5VAR.mod + VAR5frame_3m :: PPIe-D-FCI-cCPE-FFR
-optLag5 <- findMaxVARLag(VAR5frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
-
-# {{{VAR test stuff -- rmsfe etc
-fed5VAR.test6 <- testVar(VAR5frame_3m[estRange], skip = 94, nAhead = 6, Vlag = 9, IC = icT)
-sumTestError.fed5_6m <- errTstVar(fed5VAR.test6)
-# print(sumTestError.fed5_6m$r)
-
-fed5VAR.test12 <- testVar(VAR5frame_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-sumTestError.fed5_12m <- errTstVar(fed5VAR.test12)
-# }}} close rmsfe
-fed5VAR.mod <- VAR(scale(VAR5frame_3m[estRange]), p = 6, ic = icT)
-fed5VAR.mod2 <- VAR(VAR5frame_3m[estRange], p = optLag5, ic = icT)
-fed5VAR.pp <- predict(fed5VAR.mod2, n.ahead = 60)
-fed5VAR.irf <- irf(fed5VAR.mod2, n.ahead=48)
-# }}} close 5 part VAR
-
-# {{{ fed5urVAR.mod + VAR5urframe_3m :: D-UR-FCI-cPCE-FFR
-optLag5ur <- findMaxVARLag(VAR5urframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
-
-# {{{VAR test stuff -- rmsfe etc
-fed5urVAR.test6 <- testVar(VAR5urframe_3m[estRange], skip = 94, nAhead = 6, Vlag = 9, IC = icT)
-sumTestError.fed5ur_6m <- errTstVar(fed5urVAR.test6)
-# print(sumTestError.fed5_6m$r)
-
-fed5urVAR.test12 <- testVar(VAR5urframe_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-sumTestError.fed5ur_12m <- errTstVar(fed5urVAR.test12)
-# }}} close rmsfe
-fed5urVAR.mod <- VAR(scale(VAR5urframe_3m[estRange]), p = 6, ic = icT)
-fed5urVAR.mod2 <- VAR(VAR5urframe_3m[estRange], p = optLag5, ic = icT)
-fed5urVAR.pp <- predict(fed5urVAR.mod2, n.ahead = 60)
-fed5urVAR.irf <- irf(fed5urVAR.mod2, n.ahead=48)
-# }}} close 5 part VAR CF-UR-FCI-PCE-FFR
-
-# {{{ fed6VAR.mod + VAR6frame_3m :: PPIe-D-UR-FCI-cPCE-FFR
-optLag6 <- findMaxVARLag(VAR6frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) #
-
-# {{{VAR test stuff -- rmsfe etc
-fed6VAR.test6 <- testVar(VAR6frame_3m[estRange], skip = 94, nAhead = 6, Vlag = 9, IC = icT)
-sumTestError.fed6_6m <- errTstVar(fed6VAR.test6)
-# print(sumTestError.fed6_6m$r)
-
-fed6VAR.test12 <- testVar(VAR6frame_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
-sumTestError.fed6_12m <- errTstVar(fed6VAR.test12)
-# }}} close rmsfe
-fed6VAR.mod <- VAR(scale(VAR6frame_3m[estRange]), p = 6, ic = icT)
-fed6VAR.mod2 <- VAR(VAR6frame_3m[estRange], p = optLag6, ic = icT)
-fed6VAR.pp <- predict(fed6VAR.mod2, n.ahead = 60)
-fed6VAR.irf <- irf(fed6VAR.mod2, n.ahead=48)
-# }}} close 6 part VAR PPIe-CF-UR-FCI-PCE-FFR
+varSuite('VAR3frame_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR3urframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR3pframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR3Fuframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR3upframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR4frame_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR4pframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR4urframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR4euframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR4efuframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR5frame_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR5eframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR5efuframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR5epframe_3m', dateRange = estRange, initMax = 9)
+varSuite('VAR6frame_3m', dateRange = estRange, initMax = 9)
+# }}} close VAR modeling
 
 # {{{ spider POOS plots
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
