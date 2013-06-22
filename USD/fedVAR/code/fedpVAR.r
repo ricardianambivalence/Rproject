@@ -21,7 +21,7 @@ dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}}
 
-getData <- FALSE
+getData <- TRUE
 # {{{data stuff
 
 if(getData)
@@ -93,6 +93,10 @@ if(index(index(last(PPIenergy)) < index(last(BRENT_m)))) {
     PPIe_extnd <- xts(c(PPIe_act, extnd_PPIe), tt_extnd)
 }
 
+PPIe_m <- 100 * diff(PPIe_extnd, log=TRUE)
+PPIe_6mAR <- ((1 + rollapplyr(PPIe_m/100, 6, mean))^12 -1) * 100
+
+# gasoline prices
 gas_3yrmax <- rollapplyr(GASREGW, 36, max)
 gasShock <- xts(pmax(0, log(GASREGW / lag(gas_3yrmax, 6))), order.by = index(GASREGW))
 names(gasShock) <- 'gasShock'
@@ -112,39 +116,77 @@ icT <- "FPE"
 # {{{ arrange data sets
 
 startEst <- "19821101"
-endEst <- "20090331"
+endEst <- "20081231"
 estRange <- paste0(startEst, "::", endEst)
 
-# demand, FCI, 3m bill
+# any sensible strategy must have UR-cPCE-FFR as the core
+# this is at the core of the policy rules we think the FOMC follows
+
+# 3 variable VARs
+
+# demand, FCI, FFR
 VAR3frame <- cbind(CFNAI, FCI$NFCI, FFR)
 VAR3frame_3m <- rollapplyr(na.locf(VAR3frame), 3, colMeans)
 
-# demand, FCI, 3m bill
+# demand, UR, FFR
+VAR3urframe <- cbind(CFNAI, UNRATE, FFR)
+VAR3urframe_3m <- rollapplyr(na.locf(VAR3urframe), 3, colMeans)
+
+# demand, cPCE, FFR
 VAR3pframe <- cbind(CFNAI, corePCE_6mAR, FFR)
 VAR3pframe_3m <- rollapplyr(na.locf(VAR3pframe), 3, colMeans)
 
-# demand, FCI, 3m bill
-VAR3urframe <- cbind(UNRATE, corePCE_6mAR, FFR)
-VAR3urframe_3m <- rollapplyr(na.locf(VAR3urframe), 3, colMeans)
+# FCI, UR, FFR
+VAR3Fuframe <- cbind(FCI$NFCI, UNRATE, FFR)
+VAR3Fuframe_3m <- rollapplyr(na.locf(VAR3Fuframe), 3, colMeans)
 
-# PPIe_shock, demand, FCI, 3m bill
-VAR4frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, FFR)
+# ur, cPCE, FFR
+VAR3upframe <- cbind(UNRATE, corePCE_6mAR, FFR)
+VAR3upframe_3m <- rollapplyr(na.locf(VAR3upframe), 3, colMeans)
+
+# 4 variable VARs
+
+# demand, FCI, UR, FFR
+VAR4frame <- cbind(CFNAI, FCI$NFCI, UNRATE, FFR)
 VAR4frame_3m <- rollapplyr(na.locf(VAR4frame), 3, colMeans)
 
-# demand, FCI, cPCE, 3m bill
+# demand, FCI, cPCE, FFR
 VAR4pframe <- cbind(CFNAI, FCI$NFCI, corePCE_6mAR, FFR)
 VAR4pframe_3m <- rollapplyr(na.locf(VAR4pframe), 3, colMeans)
 
-# PPIe_shock, demand, FCI, inflation, 3m bill
-VAR5frame <- cbind(PPIe_shock, CFNAI, FCI$NFCI, corePCE_6mAR, FFR)
+# demand, UR, cPCE, FFR
+VAR4urframe <- cbind(CFNAI, UNRATE, corePCE_6mAR, FFR)
+VAR4urframe_3m <- rollapplyr(na.locf(VAR4urframe), 3, colMeans)
+
+# PPIe, UR, cPCE, FFR
+VAR4euframe <- cbind(PPIe_6mAR, UNRATE, corePCE_6mAR, FFR)
+VAR4euframe_3m <- rollapplyr(na.locf(VAR4euframe), 3, colMeans)
+
+# PPIe, FCI, UR, FFR
+VAR4efuframe <- cbind(PPIe_6mAR, FCI$NFCI, UNRATE, FFR)
+VAR4efuframe_3m <- rollapplyr(na.locf(VAR4efuframe), 3, colMeans)
+
+# 5 variable VARs
+
+# demand, FCI, UR, inflation, FFR
+VAR5frame <- cbind(CFNAI, FCI$NFCI, UNRATE, corePCE_6mAR, FFR)
 VAR5frame_3m <- rollapplyr(na.locf(VAR5frame), 3, colMeans)
 
-# demand, UR, FCI, inflation, 3m bill
-VAR5urframe <- cbind(CFNAI, UNRATE, FCI$NFCI, corePCE_6mAR, FFR)
-VAR5urframe_3m <- rollapplyr(na.locf(VAR5urframe), 3, colMeans)
+# PPIe, Dmnd, FCI, UR, FFR
+VAR5eframe <- cbind(PPIe_6mAR, CFNAI, FCI$NFCI, UNRATE, FFR)
+VAR5eframe_3m <- rollapplyr(na.locf(VAR5eframe), 3, colMeans)
 
-# PPIe_shock, demand, UR, FCI, inflation, 3m bill
-VAR6frame <- cbind(PPIe_shock, CFNAI, UNRATE, FCI$NFCI, corePCE_6mAR, FFR)
+# PPIe, FCI, UR, inflation, FFR
+VAR5efuframe <- cbind(PPIe_6mAR, FCI$NFCI, UNRATE, corePCE_6mAR, FFR)
+VAR5efuframe_3m <- rollapplyr(na.locf(VAR5efuframe), 3, colMeans)
+
+# PPIe, Dmnd, FCI, inflation, FFR
+VAR5epframe <- cbind(PPIe_6mAR, CFNAI, FCI$NFCI, corePCE_6mAR, FFR)
+VAR5epframe_3m <- rollapplyr(na.locf(VAR5epframe), 3, colMeans)
+
+# 6 variable VAR
+# PPIe, Dmnd, FCI, UR, inflation, FFR
+VAR6frame <- cbind(PPIe_6mAR, CFNAI, FCI$NFCI, UNRATE, corePCE_6mAR, FFR)
 VAR6frame_3m <- rollapplyr(na.locf(VAR6frame), 3, colMeans)
 # }}}close data arrange
 
@@ -237,6 +279,23 @@ fed4pVAR.pp <- predict(fed4pVAR.mod2, n.ahead = 60)
 fed4pVAR.irf <- irf(fed4pVAR.mod2, n.ahead=48)
 # }}} close 4p part VAR
 
+## {{{ fed4urVAR.mod + VAR4urframe_3m :: D-UR-FCI-FFR
+optLag4ur <- findMaxVARLag(VAR4urframe_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
+
+# {{{VAR test stuff -- rmsfe etc
+fed4urVAR.test6 <- testVar(VAR4urframe_3m[estRange], skip = 94, nAhead = 6, Vlag = 6, IC = icT)
+sumTestError.fed4ur_6m <- errTstVar(fed4urVAR.test6)
+# print(sumTestError.fed4_6m$r)
+
+fed4urVAR.test12 <- testVar(VAR4urframe_3m[estRange], skip = 94, nAhead = 12, Vlag = 9, IC = icT)
+sumTestError.fed4ur_12m <- errTstVar(fed4urVAR.test12)
+# }}} close rmsfe
+fed4urVAR.mod <- VAR(scale(VAR4urframe_3m[estRange]), p = optLag4ur, ic = icT)
+fed4urVAR.mod2 <- VAR((VAR4urframe_3m[estRange]), p = optLag4ur, ic = icT)
+fed4urVAR.pp <- predict(fed4urVAR.mod2, n.ahead = 60)
+fed4urVAR.irf <- irf(fed4urVAR.mod2, n.ahead=48)
+# }}} close 4ur part VAR
+
 # {{{ fed5VAR.mod + VAR5frame_3m :: PPIe-D-FCI-cCPE-FFR
 optLag5 <- findMaxVARLag(VAR5frame_3m[estRange], firstMax = 9, crit = paste0(icT, "(n)")) # 5
 
@@ -291,129 +350,98 @@ fed6VAR.irf <- irf(fed6VAR.mod2, n.ahead=48)
 # {{{ spider POOS plots
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3 VAR
-pdf(file.path(plotPATH, "fed3VAR.pdf"))
-plot.zoo(fed3VAR.test6$FFR['1993::'],
-         screen=1,
-         col=c(1, rep(8, ncol(fed3VAR.test6$FFR)-1)),
-         las=1,
-         lwd = c(3, rep(1, ncol(fed3VAR.test6$FFR) - 1)),
-         type = c('s', rep('l', ncol(fed3VAR.test6$FFR) - 1)),
-         main = "Pseudo Out of Sample (6m forecasts): 3 Part FED VAR",
-         xlab = "",
-         ylab = ""
-         )
+pngMk("fed3VAR.pdf")
+spiderPOOS(fed3VAR.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3ur VAR
-pdf(file.path(plotPATH, "fed3urVAR.pdf"))
-plot.zoo(fed3urVAR.test6$FFR['1993::'],
-         screen=1,
-         col=c(1, rep(8, ncol(fed3urVAR.test6$FFR)-1)),
-         las=1,
-         lwd = c(3, rep(1, ncol(fed3urVAR.test6$FFR) - 1)),
-         type = c('s', rep('l', ncol(fed3urVAR.test6$FFR) - 1)),
-         main = "Pseudo Out of Sample (6m forecasts): 3ur Part FED VAR",
-         xlab = "",
-         ylab = ""
-         )
+pngMk("fed3urVAR.pdf")
+spiderPOOS(fed3urVAR.test6, 'FFR', MAIN = "POOS FFR :: D-UR-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3p VAR
-pdf(file.path(plotPATH, "fed3pVAR.pdf"))
-plot.zoo(fed3pVAR.test6$FFR['1993::'],
-         screen=1,
-         col=c(1, rep(8, ncol(fed3pVAR.test6$FFR)-1)),
-         las=1,
-         lwd = c(3, rep(1, ncol(fed3pVAR.test6$FFR) - 1)),
-         type = c('s', rep('l', ncol(fed3pVAR.test6$FFR) - 1)),
-         main = "Pseudo Out of Sample (6m forecasts): 3p Part FED VAR",
-         xlab = "",
-         ylab = ""
-         )
+pngMk("fed3pVAR.pdf")
+spiderPOOS(fed3pVAR.test6, 'FFR', MAIN = "POOS FFR :: D-cPCE-FFR")
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 3fu VAR
+pngMk("fed3fuVAR.pdf")
+spiderPOOS(fed3fuVAR.test6, 'FFR', MAIN = "POOS FFR :: FCI-UR-FFR")
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 3up VAR
+pngMk("fed3upVAR.pdf")
+spiderPOOS(fed3upVAR.test6, 'FFR', MAIN = "POOS FFR :: UR-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 4 VAR
-pdf(file.path(plotPATH, "fed4VAR.pdf"))
-plot.zoo(fed4VAR.test6$FFR['1993::'],
-         screen=1,
-         col=c(1, rep(8, ncol(fed4VAR.test6$FFR)-1)),
-         las=1,
-         lwd = c(3, rep(1, ncol(fed4VAR.test6$FFR) - 1)),
-         type = c('s', rep('l', ncol(fed4VAR.test6$FFR) - 1)),
-         main = "Pseudo Out of Sample (6m forecasts): 4 Part FED VAR",
-         xlab = "",
-         ylab = ""
-         )
+pngMk("fed4VAR.pdf")
+spiderPOOS(fed4VAR.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-cCPE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 4p VAR
-pdf(file.path(plotPATH, "fed4pVAR.pdf"))
-plot.zoo(fed4pVAR.test6$FFR['1993::'],
-         screen=1,
-         col=c(1, rep(8, ncol(fed4pVAR.test6$FFR)-1)),
-         las=1,
-         lwd = c(3, rep(1, ncol(fed4pVAR.test6$FFR) - 1)),
-         type = c('s', rep('l', ncol(fed4pVAR.test6$FFR) - 1)),
-         main = "Pseudo Out of Sample (6m forecasts): 4p Part FED VAR",
-         xlab = "",
-         ylab = ""
-         )
+pngMk("fed4pVAR.pdf")
+spiderPOOS(fed4pVAR.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 4ur VAR
+pngMk("fed4urVAR.pdf")
+spiderPOOS(fed4urVAR.test6, 'FFR', MAIN = "POOS FFR :: D-UR-cPCE-FFR")
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 4eu VAR
+pngMk("fed4euVAR.pdf")
+spiderPOOS(fed4euVAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-UR-cPCE-FFR")
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+# =-> 4efu VAR
+pngMk("fed4efuVAR.pdf")
+spiderPOOS(fed4efuVAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-FCI-UR-FFR")
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
 # =-> 5 VAR
-pdf(file.path(plotPATH, "fed5VAR.pdf"))
-plot.zoo(fed5VAR.test6$FFR['1993::'],
-         screen=1,
-         col=c(1, rep(8, ncol(fed5VAR.test6$FFR)-1)),
-         las=1,
-         lwd = c(3, rep(1, ncol(fed5VAR.test6$FFR) - 1)),
-         type = c('s', rep('l', ncol(fed5VAR.test6$FFR) - 1)),
-         main = "Pseudo Out of Sample (6m forecasts): 5 Part FED VAR",
-         xlab = "",
-         ylab = ""
-         )
+pngMk("fed5VAR.png")
+spiderPOOS(fed5VAR.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-UR-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
-## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
-# =-> 5ur VAR
-pdf(file.path(plotPATH, "fed5urVAR.pdf"))
-plot.zoo(fed5urVAR.test6$FFR['1993::'],
-         screen=1,
-         col=c(1, rep(8, ncol(fed5urVAR.test6$FFR)-1)),
-         las=1,
-         lwd = c(3, rep(1, ncol(fed5urVAR.test6$FFR) - 1)),
-         type = c('s', rep('l', ncol(fed5urVAR.test6$FFR) - 1)),
-         main = "Pseudo Out of Sample (6m forecasts): 5ur Part FED VAR",
-         xlab = "",
-         ylab = ""
-         )
+pngMk("fed5eVAR.png")
+spiderPOOS(fed5eVAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-D-FCI-UR-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
-## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
+pngMk("fed5fuVAR.png")
+spiderPOOS(fed5fuVAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-FCI-UR-cPCE-FFR")
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
+pngMk("fed5epVAR.png")
+spiderPOOS(fed5epVAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-D-FCI-cPCE-FFR")
+mtext(text="Source: FRED ", side=1, line=4, adj=1)
+dev.off()
+
 # =-> 6 VAR
-pdf(file.path(plotPATH, "fed6VAR.pdf"))
-plot.zoo(fed6VAR.test6$FFR['1993::'],
-         screen=1,
-         col=c(1, rep(8, ncol(fed6VAR.test6$FFR)-1)),
-         las=1,
-         lwd = c(3, rep(1, ncol(fed6VAR.test6$FFR) - 1)),
-         type = c('s', rep('l', ncol(fed6VAR.test6$FFR) - 1)),
-         main = "Pseudo Out of Sample (6m forecasts): 6 Part FED VAR",
-         xlab = "",
-         ylab = ""
-         )
+pngMk("fed6VAR.png")
+spiderPOOS(fed6VAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-D-FCI-UR-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
