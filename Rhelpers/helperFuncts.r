@@ -325,4 +325,22 @@ varsPredictNewData <- function(varsMODEL, varsDATA, projFWD = 1)
     }
     return(varsDATA_pp)
 }
+
+# VAR plot function -- POOS spider plots
+
+spiderPOOS <- function(POOStest, series, startYr = 1993, MAINstring = NULL)
+{
+    startYrFlag <- paste0(startYR, '::')
+    plot.zoo(get(series, POOStest)[startYrFlag],
+             screen=1,
+             col=c(1, rep(8, ncol(get(series, POOStest)-1))),
+             las=1,
+             lwd = c(3, rep(1, ncol(get(series, POOStest)) - 1)),
+             type = c('s', rep('l', ncol(get(series, POOStest)) - 1)),
+             main = MAINstring,
+             xlab = "",
+             ylab = ""
+             )
+}
+
 # }}}
