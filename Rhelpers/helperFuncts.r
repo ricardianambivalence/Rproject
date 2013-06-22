@@ -343,4 +343,37 @@ spiderPOOS <- function(POOStest, series, startYr = 1993, MAINstring = NULL)
              )
 }
 
+# get the things you want from the VAR modelling step, and place in global env
+varSuite <- function(VARframe, dateRange, initMax = 9, infoCrit = "FPE", castAhead = 6)
+{
+    assign(paste0(VARframe, ".optLag"),
+                  findMaxVARLag(get(VARframe, envir = globalenv())[dateRange],
+                            firstMax = initMax, crit = paste0(infoCrit, "(n)")),
+           envir = globalenv()
+           )
+    assign(paste0(VARframe, ".test", castAhead),
+           testVar(get(VARframe, envir = globalenv())[dateRange], skip = 94,
+                   nAhead = castAhead, Vlag = 6, IC = infoCrit),
+           envir = globalenv()
+           )
+    assign(paste0('sumTestError.', VARframe),
+           errTstVar(get(paste0(VARframe, ".test", castAhead),
+                         envir = globalenv()
+                         )
+                    ),
+           envir = globalenv()
+           )
+    assign(paste0(VARframe, ".mod"),
+           VAR(scale(get(VARframe, envir = globalenv())[dateRange]),
+               p = get(paste0(VARframe, ".optLag"), envir = globalenv()),
+               ic = infoCrit),
+           envir = globalenv()
+           )
+    assign(paste0(VARframe, ".mod2"),
+           VAR(get(VARframe, envir = globalenv())[dateRange],
+               p = get(paste0(VARframe, ".optLag"), envir = globalenv()),
+               ic = infoCrit),
+           envir = globalenv()
+           )
+}
 # }}}
