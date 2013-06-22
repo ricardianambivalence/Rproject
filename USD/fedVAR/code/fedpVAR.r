@@ -21,7 +21,7 @@ dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}}
 
-getData <- TRUE
+getData <- FALSE
 
 # {{{data stuff
 
@@ -118,7 +118,8 @@ endEst <- "20081231"
 estRange <- paste0(startEst, "::", endEst)
 
 # any sensible strategy must have UR-cPCE-FFR as the core
-# this is at the core of the policy rules we think the FOMC follows
+# this is at the core of the policy rules we know the FOMC follows
+# consider switching back to YoY cPCE
 
 # 3 variable VARs
 
@@ -213,97 +214,97 @@ varSuite('VAR6frame_3m', dateRange = estRange, initMax = 9)
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3 VAR
 pngMk("fed3VAR.pdf")
-spiderPOOS(fed3VAR.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-FFR")
+spiderPOOS(VAR3frame_3m.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3ur VAR
 pngMk("fed3urVAR.pdf")
-spiderPOOS(fed3urVAR.test6, 'FFR', MAIN = "POOS FFR :: D-UR-FFR")
+spiderPOOS(VAR3urframe_3m.test6, 'FFR', MAIN = "POOS FFR :: D-UR-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3p VAR
 pngMk("fed3pVAR.pdf")
-spiderPOOS(fed3pVAR.test6, 'FFR', MAIN = "POOS FFR :: D-cPCE-FFR")
+spiderPOOS(VAR3pframe_3m.test6, 'FFR', MAIN = "POOS FFR :: D-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3fu VAR
 pngMk("fed3fuVAR.pdf")
-spiderPOOS(fed3fuVAR.test6, 'FFR', MAIN = "POOS FFR :: FCI-UR-FFR")
+spiderPOOS(VAR3Fuframe_3m.test6, 'FFR', MAIN = "POOS FFR :: FCI-UR-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 3up VAR
 pngMk("fed3upVAR.pdf")
-spiderPOOS(fed3upVAR.test6, 'FFR', MAIN = "POOS FFR :: UR-cPCE-FFR")
+spiderPOOS(VAR3upframe_3m.test6, 'FFR', MAIN = "POOS FFR :: UR-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 4 VAR
 pngMk("fed4VAR.pdf")
-spiderPOOS(fed4VAR.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-cCPE-FFR")
+spiderPOOS(VAR4frame_3m.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-cCPE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 4p VAR
 pngMk("fed4pVAR.pdf")
-spiderPOOS(fed4pVAR.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-cPCE-FFR")
+spiderPOOS(VAR4pframe_3m.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 4ur VAR
 pngMk("fed4urVAR.pdf")
-spiderPOOS(fed4urVAR.test6, 'FFR', MAIN = "POOS FFR :: D-UR-cPCE-FFR")
+spiderPOOS(VAR4urframe_3m.test6, 'FFR', MAIN = "POOS FFR :: D-UR-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 4eu VAR
 pngMk("fed4euVAR.pdf")
-spiderPOOS(fed4euVAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-UR-cPCE-FFR")
+spiderPOOS(VAR4euframe_3m.test6, 'FFR', MAIN = "POOS FFR :: PPIe-UR-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 ## note, as we have stopped estimation at Mar'09, need a way to thread new data into pred function
 # =-> 4efu VAR
 pngMk("fed4efuVAR.pdf")
-spiderPOOS(fed4efuVAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-FCI-UR-FFR")
+spiderPOOS(VAR4efuframe_3m.test6, 'FFR', MAIN = "POOS FFR :: PPIe-FCI-UR-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 # =-> 5 VAR
 pngMk("fed5VAR.png")
-spiderPOOS(fed5VAR.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-UR-cPCE-FFR")
+spiderPOOS(VAR5frame_3m.test6, 'FFR', MAIN = "POOS FFR :: D-FCI-UR-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 pngMk("fed5eVAR.png")
-spiderPOOS(fed5eVAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-D-FCI-UR-FFR")
+spiderPOOS(VAR5eframe_3m.test6, 'FFR', MAIN = "POOS FFR :: PPIe-D-FCI-UR-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 pngMk("fed5fuVAR.png")
-spiderPOOS(fed5fuVAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-FCI-UR-cPCE-FFR")
+spiderPOOS(VAR5efuframe_3m.test6, 'FFR', MAIN = "POOS FFR :: PPIe-FCI-UR-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 pngMk("fed5epVAR.png")
-spiderPOOS(fed5epVAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-D-FCI-cPCE-FFR")
+spiderPOOS(VAR5epframe_3m.test6, 'FFR', MAIN = "POOS FFR :: PPIe-D-FCI-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
 # =-> 6 VAR
 pngMk("fed6VAR.png")
-spiderPOOS(fed6VAR.test6, 'FFR', MAIN = "POOS FFR :: PPIe-D-FCI-UR-cPCE-FFR")
+spiderPOOS(VAR6frame_3m.test6, 'FFR', MAIN = "POOS FFR :: PPIe-D-FCI-UR-cPCE-FFR")
 mtext(text="Source: FRED ", side=1, line=4, adj=1)
 dev.off()
 
@@ -311,7 +312,7 @@ dev.off()
 
 # {{{ prediction with new data
 
-testProj <- varsPredictNewData(fed6VAR.mod2, VAR6frame_3m, projFWD = 36)
+testProj <- varsPredictNewData(VAR6frame_3m.mod2, VAR6frame_3m, projFWD = 36)
 
 # }}} close prediction with new data
 
