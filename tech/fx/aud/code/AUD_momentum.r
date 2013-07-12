@@ -89,7 +89,11 @@ matxMax <- function(mtx)
     return( matrix(c(row, colmn), 1))
 }
 
-# this makes the signal using a MA crossover
+# note this function is not req'd
+# inds <- which(smaPAR = max(smaPAR), arr.ind = TRUE)
+# inds <- arrayInd(which.min(smaPAR), dim(smaPAR))
+
+# this makes the signal using a crossover
 sigMake <- function(RULE, obj, fastPrd, slowPrd, lagLen = 1)
 {
     makeRule <- function(RULE)
