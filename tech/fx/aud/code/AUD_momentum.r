@@ -1,4 +1,4 @@
-f{{{set-up Packs and Funs
+#{{{set-up Packs and Funs
 rm(list=ls()); gc()
 Sys.setenv(TZ = 'GMT')
 #
@@ -82,7 +82,12 @@ minePar_SMA <- function(obj, shortRange, longRange, bmk = 0, lagLen = 1)
     return(SRmtx)
 }
 
-smaPAR <- minePar_SMA(AUDUSD, 1:20, 2:63, bmk = 0, lagLen = 1)
+matxMax <- function(mtx)
+{
+    colmn <- which(mtx == max(mtx, na.rm=TRUE)) %/% nrow(mtx) + 1
+    row <- which(mtx == max(mtx, na.rm=TRUE)) %% nrow(mtx)
+    return( matrix(c(row, colmn), 1))
+}
 
 # this makes the signal using a MA crossover
 sigMake <- function(RULE, obj, fastPrd, slowPrd, lagLen = 1)
@@ -117,6 +122,10 @@ minePar <- function(RULE, obj, shortRange, longRange, bmk = 0, lagLen = 1)
     }
     return(SRmtx)
 }
+
+smaPAR_test <- minePar(SMA, AUDUSD, 1:20, 2:63, bmk = 0, lagLen = 1)
+
+smaPAR_test[matxMax(smaPAR_test)]
 
 # TODO - find a which function to report row and col of max value in matrix
 
