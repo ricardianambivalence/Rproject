@@ -1,4 +1,4 @@
-#{{{set-up Packs and Funs
+f{{{set-up Packs and Funs
 rm(list=ls()); gc()
 Sys.setenv(TZ = 'GMT')
 #
@@ -13,13 +13,14 @@ require(PerformanceAnalytics)
 source("~/R/Rhelpers/helperFuncts.r")
 source("~/R/Rhelpers/RAcolorpal.r")
 # }}}
+
 # {{{ PATHstuff
 projPATH <- file.path("~/R/tech/fx/aud")
 codePATH <- file.path(projPATH, "code")
 dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}}
-getWEB <- FALSE
+getWEB <- TRUE
 ## {{{ Step 1: Get the data
 if(getWEB)
 {
@@ -57,7 +58,6 @@ mj_sharpeRswitch <- function(eqty, bmk = 0, freq = 'weekly')
     return(SR)
 }
 
-# this makes the signal using a MA crossover
 sigMake_MA <- function(obj, shortMA, longMA, lagLen = 1)
 {
     shortMave <- SMA(obj, shortMA)
@@ -82,8 +82,43 @@ minePar_SMA <- function(obj, shortRange, longRange, bmk = 0, lagLen = 1)
     return(SRmtx)
 }
 
-# TODO - find a which function to report row and col of max value in matrix
 smaPAR <- minePar_SMA(AUDUSD, 1:20, 2:63, bmk = 0, lagLen = 1)
+
+# this makes the signal using a MA crossover
+sigMake <- function(RULE, obj, fastPrd, slowPrd, lagLen = 1)
+{
+    makeRule <- function(RULE)
+    {
+        function (window)
+        {
+            do.call(RULE, list(obj, window))
+        }
+    }
+#
+    fastRule <- do.call(makeRule(RULE), list(fastPrd))
+    slowRule <- do.call(makeRule(RULE), list(slowPrd))
+    signal <- lag(ifelse(fastRule > slowRule, 1, ifelse(fastRule < slowRule, -1, 0)), lagLen)
+    names(signal) <- paste0(quote(RULE), fastPrd, 'x', slowPrd)
+    return(signal)
+}
+
+
+minePar <- function(RULE, obj, shortRange, longRange, bmk = 0, lagLen = 1)
+{
+    SRmtx <- matrix(NA, nrow = max(shortRange), ncol = max(longRange))
+    for (i in min(shortRange):max(shortRange)) {
+        for (j in min(longRange):max(longRange)) {
+            if (i < j) {
+                sig <- sigMake(RULE, obj, i, j, lagLen)
+                SR <- .sharpe(ROC(obj) * sig[!is.na(sig)])
+                SRmtx[i,j] <- SR
+            }
+        }
+    }
+    return(SRmtx)
+}
+
+# TODO - find a which function to report row and col of max value in matrix
 
 tradeMA <- function(obj, shortMA, longMA, bmk = 0, lagLen = 1)
 {
