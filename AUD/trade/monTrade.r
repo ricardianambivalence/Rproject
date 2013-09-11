@@ -4,7 +4,6 @@ Sys.setenv(TZ = 'GMT')
 #
 require(gdata)
 require(xts)
-require(zoo)
 require(ggplot2)
 require(reshape2)
 require(TTR)
