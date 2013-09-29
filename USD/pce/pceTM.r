@@ -12,6 +12,8 @@ source('~/R/Rhelpers/helperFuncts.r')
 # set paths
 mainPath <- '~/Rproject/usd/pce'
 plotPath <- file.path(mainPath, 'pics')
+codePath <- file.path(mainPath, 'code')
+dataPath <- file.path(mainPath, 'data')
 
 # set RAstamp
 RAstamp <- paste("ricardianambivalence.com  ", format(Sys.time() + 60*60*24, "%d-%b-%Y"))
