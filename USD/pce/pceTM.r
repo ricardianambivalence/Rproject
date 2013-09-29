@@ -7,7 +7,7 @@ require(TTR)
 require(quantmod)
 require(xts)
 require(gdata)
-source('~/R/Rhelpers/helperFuncts.r')
+source('~/Rproject/Rhelpers/helperFuncts.r')
 
 # set paths
 mainPath <- '~/Rproject/usd/pce'
