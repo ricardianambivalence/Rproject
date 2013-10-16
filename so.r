@@ -1,4 +1,5 @@
 require(rbenchmark)
+require(xts)
 
 set.seed(1)
 Z<-matrix(sample(1:40),ncol=4)
