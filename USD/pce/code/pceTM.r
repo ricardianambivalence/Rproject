@@ -7,13 +7,13 @@ require(TTR)
 require(quantmod)
 require(xts)
 require(gdata)
-source('~/R/Rhelpers/helperFuncts.r')
+source('~/Rproject/Rhelpers/helperFuncts.r')
 
 # set paths
-mainPath <- '/Users/mcooganj/R/usd/pce'
-plotPath <- file.path(mainPath, 'Rpics')
+mainPath <- '~/Rproject/usd/pce'
+plotPath <- file.path(mainPath, 'pics')
 
-# set RAstamp
+# set RAstamps
 RAstamp <- paste("ricardianambivalence.com  ", format(Sys.time() + 60*60*24, "%d-%b-%Y"))
 
 # get trimmed mean PCE data
@@ -104,7 +104,7 @@ dev.off()
 
 png(file.path(plotPath, 'USrealPerCapInc_PPtPeak.png'))
 par(mar=c(3.5, 4.5, 2, 1), oma=c(1,0,0,0))
-plot(100*(log(A229RX0) - log(cummax(A229RX0))), las=1, 
+plot(100*(log(A229RX0) - log(cummax(A229RX0))), las=1,
      main="Real Per-capita Disposable Income (%of Peak)")
 mtext(RAstamp, cex=0.75, line=0, side=1, adj=1, outer=T)
 mtext("Source: FRED", cex=0.75, side=1, adj=0, outer=T)
@@ -129,7 +129,7 @@ preGFCConsTrend <- lm(log(PCEC96['1995::2008']) ~ index(PCEC96['1995::2008']))
 
 png(file.path(plotPath, 'realPCE_vTrend.png'))
 par(mar=c(3.5, 4.5, 2, 1), oma=c(1,0,0,0))
-plot(log(coredata(PCEC96['1995::'])) ~ index(PCEC96['1995::']), 
+plot(log(coredata(PCEC96['1995::'])) ~ index(PCEC96['1995::']),
      type = 'l', las=1, col = 4,
      ylab='log USDbn', xlab='', main="(log) real personal consumption expenditure")
 abline(preGFCConsTrend, col=2, lwd=2, lty=2)
@@ -145,7 +145,7 @@ plot(PCEC96['2004::'], las=2, major.format="%b-%y", log='y',
      main = "Real PCE & GDP-Consumption", ylab = "real USDbn (2005$)")
 lines(PCECC96['2004::'], col=6, lwd=4)
 lines(PCEC96['2004::'], col=4, type='o', pch=5, cex = 1.3)
-legend('topleft', legend=c('Real PCE (monthly)', 'GDP-PCE (qtrly)'), lwd=c(1,4), 
+legend('topleft', legend=c('Real PCE (monthly)', 'GDP-PCE (qtrly)'), lwd=c(1,4),
        col=c(4,6), pch = c(5, NA), bg='lightgrey', horiz=TRUE)
 mtext(RAstamp, cex=0.75, line=0, side=1, adj=1, outer=T)
 mtext("Source: FRED", cex=0.75, side=1, adj=0, outer=T)

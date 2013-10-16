@@ -2,10 +2,16 @@ require(quantmod)
 require(PerformanceAnalytics)
 require(reshape2)
 
+getData <- FALSE
+
 # Step 1: Get the data
-dataNames <- c('DEXUSAL')
-getSymbols(dataNames,src='FRED', return.class = 'xts')
-AUDUSD <- DEXUSAL['1984::']
+if(getData){
+    dataNames <- c('DEXUSAL')
+    getSymbols(dataNames,src='FRED', return.class = 'xts')
+    AUDUSD <- DEXUSAL['1984::']
+} else {
+    load(file = "~/Rproject/tech/fx/aud/data/AUDUSD.RData")
+}
 
 # Step 2: Create your indicator
 for (i in 2:100) {

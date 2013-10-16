@@ -10,28 +10,30 @@ require(reshape2)
 require(gridExtra)
 require(quantmod)
 require(PerformanceAnalytics)
-source("~/R/Rhelpers/helperFuncts.r")
-source("~/R/Rhelpers/RAcolorpal.r")
+source("~/Rproject/Rhelpers/helperFuncts.r")
+source("~/Rproject/Rhelpers/RAcolorpal.r")
 # }}}
 
 # {{{ PATHstuff
-projPATH <- file.path("~/R/tech/fx/aud")
+projPATH <- file.path("~/Rproject/tech/fx/aud")
 codePATH <- file.path(projPATH, "code")
 dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}}
-getWEB <- TRUE
+getWEB <- FALSE
 ## {{{ Step 1: Get the data
 if(getWEB)
 {
     dataNames <- c('DEXUSAL')
     getSymbols(dataNames,src='FRED', return.class = 'xts')
-    AUDUSD <- DEXUSAL['1984::']
+    AUDUSD <- na.locf(DEXUSAL['1984::'])
     names(AUDUSD) <- 'AUDUSD'
-    save(AUDUSD, file = file.path(dataPATH, "audusd.rdata"))
+    save(AUDUSD, file = file.path(dataPATH, "AUDUSD.RData"))
 } else {
-    load(file = file.path(dataPATH, "audusd.rdata"))
+    load(file = file.path(dataPATH, "AUDUSD.RData"))
 }
+
+AUDUSD <- na.locf(AUDUSD)
 
 # }}} end get data
 
@@ -111,7 +113,6 @@ sigMake <- function(RULE, obj, fastPrd, slowPrd, lagLen = 1)
     return(signal)
 }
 
-
 minePar <- function(RULE, obj, shortRange, longRange, bmk = 0, lagLen = 1)
 {
     SRmtx <- matrix(NA, nrow = max(shortRange), ncol = max(longRange))
@@ -145,7 +146,7 @@ tradeMA <- function(obj, shortMA, longMA, bmk = 0, lagLen = 1)
                     'Equity' = equity)
 }
 
-tt8x13 <- tradeMA(AUDUSD, 1, 3)
+tt8x13 <- tradeMA(AUDUSD, 3, 14)
 mret = merge(diff(AUDUSD, log=T), tt8x13$Returns)
 
 

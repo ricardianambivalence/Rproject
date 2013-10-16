@@ -10,13 +10,13 @@ require(ggplot2)
 require(reshape2)
 require(gridExtra)
 require(quantmod)
-source("~/R/Rhelpers/helperFuncts.r")
-source("~/R/Rhelpers/RAcolorpal.r")
+source("~/Rproject/Rhelpers/helperFuncts.r")
+source("~/Rproject/Rhelpers/RAcolorpal.r")
 # }}}
 
 ### {{{ PATH stuff
-projectPATH <- "~/R/AUD/alm"
-plotPATH <- file.path(projectPATH, "Rpics")
+projectPATH <- "~/Rproject/AUD/alm"
+plotPATH <- file.path(projectPATH, "plot")
 dataPATH <- file.path(projectPATH, "data")
 codePATH <- file.path(projectPATH, "code")
 # }}} close paths
@@ -27,7 +27,7 @@ getWeb <- TRUE
 # {{{ get data
 if (getWeb)
 {
-    absT1 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202001.xls&6202.0&Time%20Series%20Spreadsheet&70904786EB4EEFE3CA257B880012BC67&0&May%202013&13.06.2013&Latest"
+    absT1 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202001.xls&6202.0&Time%20Series%20Spreadsheet&0028E152CEF43D73CA257BFF000B981C&0&Sep%202013&10.10.2013&Latest"
     absT1xls <- read.xls(absT1, sheet = 'Data1')
     absT1 <- absT1xls[-c(1:10),]
     absT1[,1] <- as.Date(paste0(substr(absT1[,1], 5, 9), "-", substr(absT1[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -40,7 +40,7 @@ if (getWeb)
     rm(absT1xls)
     save(absT1, file = file.path(dataPATH, "almT1.RData"))
 
-    absT2 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202002.xls&6202.0&Time%20Series%20Spreadsheet&9EC450E6099D70A0CA257B880012BEB8&0&May%202013&13.06.2013&Latest"
+    absT2 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202002.xls&6202.0&Time%20Series%20Spreadsheet&CC18470E1F2A9ECCCA257BFF000B995C&0&Sep%202013&10.10.2013&Latest"
     absT2xls <- read.xls(absT2, sheet = 'Data1')
     absT2 <- absT2xls[-c(1:10),]
     absT2[,1] <- as.Date(paste0(substr(absT2[,1], 5, 9), "-", substr(absT2[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -53,7 +53,7 @@ if (getWeb)
     rm(absT2xls)
     save(absT2, file = file.path(dataPATH, "almT2.RData"))
 
-    absT3 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202003.xls&6202.0&Time%20Series%20Spreadsheet&2D8DAA3B16E850E6CA257B880012C043&0&May%202013&13.06.2013&Latest"
+    absT3 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202003.xls&6202.0&Time%20Series%20Spreadsheet&ABC51F66ABD6EC25CA257BFF000B9AD1&0&Sep%202013&10.10.2013&Latest"
     absT3xls <- read.xls(absT3, sheet = 'Data1')
     absT3 <- absT3xls[-c(1:10),]
     absT3[,1] <- as.Date(paste0(substr(absT3[,1], 5, 9), "-", substr(absT3[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -67,7 +67,7 @@ if (getWeb)
     rm(absT3xls)
     save(absT3, file = file.path(dataPATH, "almT3.RData"))
 
-    absT19 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202019.xls&6202.0&Time%20Series%20Spreadsheet&7BC14F427A0CEE49CA257B880012D54A&0&May%202013&13.06.2013&Latest"
+    absT19 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202019.xls&6202.0&Time%20Series%20Spreadsheet&1283893339E515E4CA257BFF000BBE35&0&Sep%202013&10.10.2013&Latest"
     absT19xls <- read.xls(absT19, sheet = 'Data1')
     absT19 <- absT19xls[-c(1:10),]
     absT19[,1] <- as.Date(paste0(substr(absT19[,1], 5, 9), "-", substr(absT19[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -77,9 +77,9 @@ if (getWeb)
                        'hrsM_sa', 'hrsF_sa', 'hrs_sa')
     absT19[,-1] <- sapply(absT19[, -1], FUN = function(X) as.numeric(as.character(X)))
     rm(absT19xls)
-    save(absT19, file = "~/data/aud/alm/almT19.RData")
+    save(absT19, file = file.path(dataPATH, "almT19.RData"))
 
-    gflowsX <- "~/data/Mar13/hazard rates.xls"
+    gflowsX <- file.path(dataPATH, "hazard rates.xls")
     gflowsXls <- read.xls(gflowsX, sheet = 'toR', as.is=TRUE)
     gflowsXx <- xts(gflowsXls[, -1], order.by = as.Date(gflowsXls[, 1]))
     rm(gflowsX, gflowsXls)

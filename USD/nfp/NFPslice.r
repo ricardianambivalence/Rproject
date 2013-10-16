@@ -7,7 +7,7 @@ require(quantmod)
 require(lattice)
 
 ## PATH stuff
-workingPATH <- "~/R/usd/nfp"
+workingPATH <- "~/Rproject/USD/nfp"
 plotPATH <- file.path(workingPATH, "Rpics")
 
 # get data from FRED
@@ -140,13 +140,13 @@ mtext('Source: FRED', side=1, line=4, adj=0)
 dev.off()
 
 png(file.path(plotPATH, "NFP_partRateLong.png"))
-plot(CIVPART, main="Civilian Labor Force Participation Rate (weeks)", las=1, pch=20)
+plot(CIVPART, main="Civilian Labor Force Participation Rate", las=1, pch=20)
 mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
 mtext('Source: FRED', side=1, line=4, adj=0)
 dev.off()
 
 png(file.path(plotPATH, "NFP_partRateShort.png"))
-plot(CIVPART['2007::'], main="Civilian Labor Force Participation Rate (weeks)", las=1, type='o', pch=20)
+plot(CIVPART['2007::'], main="Civilian Labor Force Participation Rate", las=1, type='o', pch=20)
 mtext('www.ricardianambivalence.com', side=1, line=4, adj=1)
 mtext('Source: FRED', side=1, line=4, adj=0)
 dev.off()
