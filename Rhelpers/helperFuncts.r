@@ -2,6 +2,13 @@
 
 # {{{ general helpers
 
+`%between%` <- function(x, rng) x > rng[1] & x < rng[2]
+
+is.between <- function(x, l, u) {
+    b <- c(l, u)
+    x %between% b
+}
+
 pckReq <- function(pckName)
 {
     if(!paste0('package:', pckName) %in% search())
