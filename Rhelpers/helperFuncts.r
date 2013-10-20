@@ -2,7 +2,7 @@
 
 # {{{ general helpers
 
-`%between%` <- function(x, rng) x > rng[1] & x < rng[2]
+`%between%` <- function(x, rng) x >= rng[1] & x <= rng[2]
 
 is.between <- function(x, l, u) {
     b <- c(l, u)
