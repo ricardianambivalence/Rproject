@@ -77,6 +77,7 @@ rewindX_fi <- function(Xts, dayRew=1, fillNA = TRUE, last = TRUE){
 }
 
 dateCompX_fi <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL){
+    fillTest <- function(X){if(fillNA) na.locf(X) else X }
     stopifnot(is.xts(Xts),
               if(!is.null(Yts)) is.xts(Yts) else TRUE
               )
@@ -84,8 +85,8 @@ dateCompX_fi <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL){
     newDates <- index(Xts) - lagNum
     targetRows_Y <- findInterval(newDates, index(Yts))
     zeros <- which(targetRows_Y == 0)
-    print(zeros)
+    nonZeros <- targetRows_Y[targetRows_Y > 0]
+    nonZeroRowDiff <- coredata(fillTest(Xts[-zeros,])) -
+                        coredata(fillTest(Yts[nonZeros,]))
+    xts(nonZeroRowDiff, order.by = index(Xts)[-zeros])
 }
-
-dateCompX_fi(xxd)
-dateCompX_fi(xxd, fillNA = FALSE)
