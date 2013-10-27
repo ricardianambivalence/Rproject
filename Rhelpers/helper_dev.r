@@ -1,6 +1,6 @@
 require(xts)
 set.seed(1)
-
+#
 ddf <- data.frame('1m' = rnorm(25), '3m' = rnorm(25))
 xxd <- xts(ddf, seq(as.Date('2013-07-27'), length.out = 25, by='day'))
 xxd[sample(1:25, 8), ] <- NA
@@ -61,10 +61,31 @@ xd <- xts(dd, tt)
 
 
 # try findInterval approach
-rewindX_fi <- function(Xts, dayRew=1){
+rewindX_fi <- function(Xts, dayRew=1, fillNA = TRUE, last = TRUE){
+    # rewinds an Xts object by dayRew days
+    lastFlip <- function(X) { if(last) {last(X)} else X }
     stopifnot(is.xts(Xts))
-    newDate <- index(last(Xts)) - dayRew
-    rewindRow <- findInterval(newDate, index(Xts))
-    na.locf(Xts)[rewindRow, ]
+    newDates <- index(Xts) - dayRew
+    rewindRows <- findInterval(newDates, index(Xts))
+    nonZeros <- rewindRows[rewindRows > 0]
+    if(fillNA) {
+        Xts_rew <- lastFlip(na.locf(Xts, na.rm = FALSE)[nonZeros, ])
+    } else {
+        Xts_rew <- lastFlip(Xts[nonZeros, ])
+    }
+    merge(xts(NULL, newDates), Xts_rew)
 }
 
+dateCompX_fi <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL){
+    stopifnot(is.xts(Xts),
+              if(!is.null(Yts)) is.xts(Yts) else TRUE
+              )
+    if(is.null(Yts)) Yts <- Xts
+    newDates <- index(Xts) - lagNum
+    targetRows_Y <- findInterval(newDates, index(Xts))
+    targetRows_Y <- targetRows_Y[targetRows_Y > 0]
+
+}
+
+dateCompX_fi(xxd)
+dateCompX_fi(xxd, fillNA = FALSE)
