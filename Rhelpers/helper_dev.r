@@ -69,11 +69,11 @@ rewindX_fi <- function(Xts, dayRew=1, fillNA = TRUE, last = TRUE){
     rewindRows <- findInterval(newDates, index(Xts))
     nonZeros <- rewindRows[rewindRows > 0]
     if(fillNA) {
-        Xts_rew <- lastFlip(na.locf(Xts, na.rm = FALSE)[nonZeros, ])
+        Xts_rew <- na.locf(Xts, na.rm = FALSE)[nonZeros, ]
     } else {
-        Xts_rew <- lastFlip(Xts[nonZeros, ])
+        Xts_rew <- Xts[nonZeros, ]
     }
-    merge(xts(NULL, newDates), Xts_rew)
+    lastFlip(merge(xts(NULL, newDates), Xts_rew))
 }
 
 dateCompX_fi <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL){
@@ -82,9 +82,9 @@ dateCompX_fi <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL){
               )
     if(is.null(Yts)) Yts <- Xts
     newDates <- index(Xts) - lagNum
-    targetRows_Y <- findInterval(newDates, index(Xts))
-    targetRows_Y <- targetRows_Y[targetRows_Y > 0]
-
+    targetRows_Y <- findInterval(newDates, index(Yts))
+    zeros <- which(targetRows_Y == 0)
+    print(zeros)
 }
 
 dateCompX_fi(xxd)
