@@ -6,6 +6,10 @@ xxd <- xts(ddf, seq(as.Date('2013-07-27'), length.out = 25, by='day'))
 xxd[sample(1:25, 8), ] <- NA
 xxd <- xxd[-sample(1:25, 3), ]
 
+xxd_ext <- merge(
+                 xts(NULL, order.by = index(last(xxd)) + 1:5),
+                 xxd)
+
 # roll back xts across missing and NA rows
 
 # rewind an XTS object - returns most recent non-null row
@@ -60,7 +64,7 @@ dd <- rnorm(length(tt))
 xd <- xts(dd, tt)
 
 
-# try findInterval approach
+# rewind an xts object by n days
 rewindX_fi <- function(Xts, dayRew=1, fillNA = TRUE, last = TRUE){
     # rewinds an Xts object by dayRew days
     lastFlip <- function(X) { if(last) {last(X)} else X }
@@ -68,14 +72,15 @@ rewindX_fi <- function(Xts, dayRew=1, fillNA = TRUE, last = TRUE){
     newDates <- index(Xts) - dayRew
     rewindRows <- findInterval(newDates, index(Xts))
     nonZeros <- rewindRows[rewindRows > 0]
-    if(fillNA) {
-        Xts_rew <- na.locf(Xts, na.rm = FALSE)[nonZeros, ]
+    Xts_rew <- if(fillNA) {
+        na.locf(Xts, na.rm = FALSE)[nonZeros,]
     } else {
         Xts_rew <- Xts[nonZeros, ]
     }
     lastFlip(merge(xts(NULL, newDates), Xts_rew))
 }
 
+# find the difference between two xts objects n days apart
 dateCompX_fi <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL){
     fillTest <- function(X){if(fillNA) na.locf(X) else X }
     stopifnot(is.xts(Xts),
@@ -90,3 +95,63 @@ dateCompX_fi <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL){
                         coredata(fillTest(Yts[nonZeros,]))
     xts(nonZeroRowDiff, order.by = index(Xts)[-zeros])
 }
+
+# fill and extend an xts object using AR methods
+na.ARextend <- function(Xts, ARorder = 1, ADD = NULL, window = 120){
+    Xts_filled <- na.approx(Xts, na.rm=FALSE)
+    Xts_trim <- Xts_filled[complete.cases(Xts_filled),]
+    regMat <- do.call(cbind,
+                      lapply(0:ARorder, function(X) tail(lag(Xts_trim, X), window)))
+    regMat <- cbind(regMat[,1],
+                    rep(1, nrow(regMat)),
+                    regMat[, 2:ncol(regMat)]
+                    )[-c(1:ARorder), ]
+    coco <- lm.fit(x = regMat[,1], y = regMat[, -1])$coefficients
+}
+
+(na.ARextend(xxd_ext[,1]))
+
+
+# rolling regression inside data.table
+require(data.table)
+set.seed(1)
+x  <- rnorm(1000)
+DT <- data.table(x)
+DTin <- data.table(x)
+
+lagDT <- function(DTin, varname, l=5)
+{
+    i = 0
+    while ( i < l){
+        expr <- parse(text =
+                      paste0(varname, '_L', (i+1),
+                             ':= c(rep(NA, (1+i)),',
+                             varname, '[-((length(',
+                             varname, ') - i):length(', varname, '))])'
+                             ))
+        DTin[, eval(expr)]
+        i <- i + 1
+    }
+    return(DTin)
+}
+
+rollRegDT <- function(DTin, varname, k=20, l=5)
+{
+    adj <- k + l - 1
+    .x <- 1:(nrow(DTin)-adj)
+    DTin[, int:=1]
+    dtReg <- function(dd) coef(lm.fit(y=dd[-c(1:l),1], x=dd[-c(1:l),-1]))
+    eleNum <- nrow(DTin)*(l+1)
+    outMatx <- matrix(rep(NA, eleNum), ncol = (l+1))
+    colnames(outMatx) <- c('intercept', 'L1', 'L2', 'L3', 'L4', 'L5')
+    for (i in .x){
+        dt_m <- as.matrix(lagDT(DTin[i:(i+adj), ], varname, l))
+        outMatx[(i+(adj)),] <- dtReg(dt_m)
+    }
+    return(outMatx)
+}
+
+rollCoef <- rollRegDT(DT, varname='x')
+
+mm <- lm(xxd[2:11,1] ~ xxd[1:10,1])
+ir = lm(Sepal.Length~ Petal.Length, data=iris)
