@@ -185,3 +185,36 @@ rollCoef <- rollRegDT(DT, varname='x')
 mm <- lm(xxd[2:11,1] ~ xxd[1:10,1])
 ir = lm(Sepal.Length~ Petal.Length, data=iris)
 
+# selecting DT rows by function
+
+DLSlist <- lapply(
+                  list(dls11t12 = c("2011-10-02", "2012-04-01"),
+                       dls12t13 = c("2012-10-07", "2013-04-07"),
+                       dls13t14 = c("2013-10-06", "2014-04-06"),
+                       dls14t15 = c("2014-10-05", "2015-04-05"),
+                       dls15t16 = c("2015-10-04", "2016-04-03"),
+                       dls16t17 = c("2016-10-02", "2017-04-02")
+                       ),
+                  function(X) as.POSIXct(X)
+                  )
+
+set.seed(1)
+tt <- sample(
+             seq(as.POSIXct("2011-10-02"), as.POSIXct("2014-04-06"),
+                 by = "day"), 10)
+IR1 <- data.table(tstamp = sort(tt), dLoc = 1L:10L)
+
+
+DLStest <- function(dd, DLSobj) {
+    apply(sapply(DLSobj, function(X) dd %between% X), 1, any)
+}
+(IR1[DLStest(tstamp, DLSlist), dLoc := dLoc + 1000L])
+
+DLStest_old <- function(dd, DLSobj) {
+    any(sapply(DLSobj, function(X) dd %between% X))
+}
+IR1[DLStest_old(tstamp, DLSlist), dLoc := dLoc + 1000L]
+
+debug(DLStest)
+(DLStest_old(tt, DLSlist))
+(DLStest(tt, DLSlist))
