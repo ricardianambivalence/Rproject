@@ -99,3 +99,24 @@ mydf$Times <- as.numeric(ave(as.character(mydf$Seasons),
 ##   Repeat for other variables by changing the "value.var"
 dcast(mydf, ID ~ Seasons + Times, value.var="Fluency")
 
+#
+
+# example data
+df <- data.frame(Site = 1:3,
+                 Count1 = 0:2,
+                 Count2 = c(0,2,0),
+                 Count3 = c(0,3,0),
+                 Habitat = c("Forest", "Field", "Field")
+                 )
+
+countSplit_2df <- function(DF){
+    CountCols <- grep("Count", names(DF))
+    HabCol <- grep("Habitat", names(DF))
+    for (z in CountCols) {
+        assign(paste("df", z, sep="."),
+               rbind(df[,c(1, z, HabCol)]),
+               envir = .GlobalEnv)
+    }
+}
+
+countSplit_2df(df)
