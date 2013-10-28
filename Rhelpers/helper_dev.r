@@ -1,3 +1,13 @@
+# find periodicity of xts object
+Xfreq <- function(XTS) {
+    switch(periodicity(XTS)$scale,
+           daily = 'day',
+           weekly = 'week',
+           monthly = 'month',
+           quarterly = '3 month',
+           yearly = 'year')
+}
+
 require(xts)
 set.seed(1)
 #
@@ -5,7 +15,7 @@ ddf <- data.frame('1m' = rnorm(25), '3m' = rnorm(25))
 xxd <- xts(ddf, seq(as.Date('2013-07-27'), length.out = 25, by='day'))
 xxd[sample(1:25, 8), ] <- NA
 xxd <- xxd[-sample(1:25, 3), ]
-
+#
 xxd_ext <- merge(
                  xts(NULL, order.by = index(last(xxd)) + 1:5),
                  xxd)
@@ -97,7 +107,7 @@ dateCompX_fi <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL){
 }
 
 # fill and extend an xts object using AR methods
-na.ARextend <- function(Xts, ARorder = 1, ADD = NULL, window = 120){
+na.ARextend <- function(Xts, ARorder = 1, ADD = 0, window = 120){
     Xts_filled <- na.approx(Xts, na.rm=FALSE)
     Xts_trim <- Xts_filled[complete.cases(Xts_filled),]
     regMat <- do.call(cbind,
@@ -106,10 +116,29 @@ na.ARextend <- function(Xts, ARorder = 1, ADD = NULL, window = 120){
                     rep(1, nrow(regMat)),
                     regMat[, 2:ncol(regMat)]
                     )[-c(1:ARorder), ]
-    coco <- lm.fit(x = regMat[,1], y = regMat[, -1])$coefficients
+    coco <- lm.fit(y = regMat[, 1], x = regMat[, -1])$coefficients
+# add on NAs if ADD is not 0
+    if(ADD) {
+        xt <- seq(index(last(Xts_filled)) + 1, by = Xfreq(Xts_filled), length.out = ADD)
+        Xts_filled <- merge(
+                            xts(NULL, order.by = xt),
+                            Xts_filled)
+    }
+    locNAs <- which(is.na(Xts_filled)) # find the NA elements (if there are any)
+    for (n in seq_along(locNAs)) {
+        vals <- c(1, sapply(1:ARorder, function(i) Xts_filled[locNAs[n] - i, ]))
+        Xts_filled[locNAs[n],] <- coco %*% vals
+    }
+    print('end of function')
+    return(Xts_filled)
 }
 
+
+debug(na.ARextend)
 (na.ARextend(xxd_ext[,1]))
+lm(na.approx(xxd[,1]) ~ lag(na.approx(xxd[,1]),1))$coeff
+lm(na.approx(xxd[,1]) ~ lag(na.approx(xxd[,1]),1) + lag(na.approx(xxd[,1]), 2))$coeff
+(na.ARextend(xxd_ext[,1], AR=1))
 
 
 # rolling regression inside data.table
@@ -155,3 +184,4 @@ rollCoef <- rollRegDT(DT, varname='x')
 
 mm <- lm(xxd[2:11,1] ~ xxd[1:10,1])
 ir = lm(Sepal.Length~ Petal.Length, data=iris)
+
