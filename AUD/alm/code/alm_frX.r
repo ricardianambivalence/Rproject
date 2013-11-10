@@ -27,7 +27,7 @@ getWeb <- TRUE
 # {{{ get data
 if (getWeb)
 {
-    absT1 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202001.xls&6202.0&Time%20Series%20Spreadsheet&0028E152CEF43D73CA257BFF000B981C&0&Sep%202013&10.10.2013&Latest"
+    absT1 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202001.xls&6202.0&Time%20Series%20Spreadsheet&FA62848F675FC378CA257C1B000D8949&0&Oct%202013&07.11.2013&Latest"
     absT1xls <- read.xls(absT1, sheet = 'Data1')
     absT1 <- absT1xls[-c(1:10),]
     absT1[,1] <- as.Date(paste0(substr(absT1[,1], 5, 9), "-", substr(absT1[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -40,7 +40,7 @@ if (getWeb)
     rm(absT1xls)
     save(absT1, file = file.path(dataPATH, "almT1.RData"))
 
-    absT2 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202002.xls&6202.0&Time%20Series%20Spreadsheet&CC18470E1F2A9ECCCA257BFF000B995C&0&Sep%202013&10.10.2013&Latest"
+    absT2 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202002.xls&6202.0&Time%20Series%20Spreadsheet&5EDCE161CFFE7712CA257C1B000D8A24&0&Oct%202013&07.11.2013&Latest"
     absT2xls <- read.xls(absT2, sheet = 'Data1')
     absT2 <- absT2xls[-c(1:10),]
     absT2[,1] <- as.Date(paste0(substr(absT2[,1], 5, 9), "-", substr(absT2[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -53,7 +53,7 @@ if (getWeb)
     rm(absT2xls)
     save(absT2, file = file.path(dataPATH, "almT2.RData"))
 
-    absT3 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202003.xls&6202.0&Time%20Series%20Spreadsheet&ABC51F66ABD6EC25CA257BFF000B9AD1&0&Sep%202013&10.10.2013&Latest"
+    absT3 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202003.xls&6202.0&Time%20Series%20Spreadsheet&0FD9F07A76FE5495CA257C1B000D8AF2&0&Oct%202013&07.11.2013&Latest"
     absT3xls <- read.xls(absT3, sheet = 'Data1')
     absT3 <- absT3xls[-c(1:10),]
     absT3[,1] <- as.Date(paste0(substr(absT3[,1], 5, 9), "-", substr(absT3[,1], 1, 3), "-01"), format = "%Y-%b-%d")
@@ -67,7 +67,7 @@ if (getWeb)
     rm(absT3xls)
     save(absT3, file = file.path(dataPATH, "almT3.RData"))
 
-    absT19 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202019.xls&6202.0&Time%20Series%20Spreadsheet&1283893339E515E4CA257BFF000BBE35&0&Sep%202013&10.10.2013&Latest"
+    absT19 <- "http://abs.gov.au/ausstats/meisubs.NSF/log?openagent&6202019.xls&6202.0&Time%20Series%20Spreadsheet&EF81361B4DFC6826CA257C1B000DA07C&0&Oct%202013&07.11.2013&Latest"
     absT19xls <- read.xls(absT19, sheet = 'Data1')
     absT19 <- absT19xls[-c(1:10),]
     absT19[,1] <- as.Date(paste0(substr(absT19[,1], 5, 9), "-", substr(absT19[,1], 1, 3), "-01"), format = "%Y-%b-%d")
