@@ -22,7 +22,7 @@ codePATH <- file.path(projectPATH, "code")
 # }}} close paths
 
 ## get from web or saved xls?
-getWeb <- TRUE
+getWeb <- FALSE
 
 # {{{ get data
 if (getWeb)
@@ -328,7 +328,7 @@ dev.off()
 
 # Matched v. unmatched -- level 'k + stacked
 gp_matchN <- ggplot(subset(matchLvl, variable %in% c('n_matchSA', 'n_UNmatchSA')),
-                  aes(x = date, y = value, fill = variable)) +
+                  aes(x = date, y = value, fill = variable, color = variable)) +
                 theme_grey() +
                 scale_color_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 scale_fill_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
