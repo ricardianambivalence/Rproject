@@ -330,6 +330,7 @@ dev.off()
 gp_matchN <- ggplot(subset(matchLvl, variable %in% c('n_matchSA', 'n_UNmatchSA')),
                   aes(x = date, y = value, fill = variable)) +
                 theme_grey() +
+                scale_color_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 scale_fill_brewer(palette = 'Set1', guide = guide_legend(reverse = TRUE)) +
                 labs(title = "Employment by type ('000k)") +
                 labs(y = NULL, x = NULL) +
