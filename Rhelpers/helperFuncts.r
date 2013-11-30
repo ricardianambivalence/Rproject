@@ -167,7 +167,7 @@ year1900 <- function(dd_y, yrFlip = 50)
     return(dd_y)
 }
 
-rewindX_fi <- function(Xts, dayRew=1, fillNA = TRUE, last = TRUE, oldDates = TRUE)
+rewindX <- function(Xts, dayRew=1, fillNA = TRUE, last = TRUE, oldDates = TRUE)
 {
     # rewinds an Xts object by dayRew days
     stopifnot(is.xts(Xts))
@@ -191,7 +191,7 @@ rewindX_fi <- function(Xts, dayRew=1, fillNA = TRUE, last = TRUE, oldDates = TRU
 }
 
 #
-dateCompX_fi <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL)
+dateCompX <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL)
 {
     fillTest <- function(X){if(fillNA) na.locf(X) else X }
     stopifnot(is.xts(Xts),
