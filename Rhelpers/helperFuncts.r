@@ -2,6 +2,8 @@
 
 # {{{ general helpers
 
+"%notin%" <- function(x, y) x[!x %in% y]
+
 `%between%` <- function(x, rng) x >= rng[1] & x <= rng[2]
 
 is.between <- function(x, l, u) {
@@ -32,8 +34,6 @@ meltx <- function(dx)
 
 x2df <- function(XTS) {data.frame('date' = index(XTS), data.frame(coredata(XTS)))}
 
-"%notin%" <- function(x, y) x[!x %in% y]
-
 # read ABS sheet function
 readABS <- function(XLS, SHEET = 'Data1', LineSkip = 9)
 {
@@ -56,6 +56,21 @@ readClvFed <- function(URL, SHEET = 'Sheet1', LineSkip = 0, dateType = 'b-y')
 dfxColScl <- function(dfrm, pos=1, idx = 100)
 {
     sweep(idx*dfrm, 2, dfrm[1,], "/")
+}
+
+tFrac2Dec <- function(x)
+{
+    hyphSplit <- strsplit(x, "-")
+    ch1 <- sapply(hyphSplit,`[`, 1)
+    ch2 <- sapply(hyphSplit,`[`, 2)
+    x32 <- as.integer(substring(ch2, 1, 2))
+    x128 <- rep(0, length(ch1))
+    x128[grep("\\+$", ch2)] <- 2
+    x128[grep("1/4", ch2, fixed=TRUE)] <- 1
+    x128[grep("3/4", ch2, fixed=TRUE)] <- 3
+    dec <- x32/32 + x128/128
+    dec[is.na(dec)] <- 0
+    as.integer(ch1) + dec
 }
 
 # }}}
@@ -204,7 +219,7 @@ al_easySA <- function(x){
 
 # }}}
 
-# {{{VAR helpers
+# {{{ VAR helpers
 ## VAR helpers require(vars)
 # find the lag length - crit in {'AIC(n)', 'HQ(n)', 'SC(n)', 'FPE(n)'}
 findMaxVARLag <- function(varData, firstMax=12, crit = "SC(n)")
