@@ -293,7 +293,9 @@ findMaxVARLag <- function(varData, firstMax=12, crit = "SC(n)")
 
 # measure POOS performance of a VAR
 
-testVar <- function(dframe, nAhead = 6, IC = 'SC', periodicity = 'months', skip = NULL, Vlag = 12, RSTmtx = NULL)
+testVar <- function(dframe, nAhead = 6, IC = 'SC',
+                    periodicity = 'months',
+                    skip = NULL, Vlag = 12, RSTmtx = NULL)
 {
     # setup
     if(is.null(skip)) { skip <- nrow(dframe) %/% 2 }
@@ -408,7 +410,7 @@ varsPredictNewData <- function(varsMODEL, varsDATA, projFWD = 1)
 
 spiderPOOS <- function(POOStest, series, startYr = 1993, MAINstring = NULL)
 {
-    startYrFlag <- paste0(startYR, '::')
+    startYrFlag <- paste0(startYr, '::')
     plot.zoo(get(series, POOStest)[startYrFlag],
              screen=1,
              col=c(1, rep(8, ncol(get(series, POOStest)-1))),
