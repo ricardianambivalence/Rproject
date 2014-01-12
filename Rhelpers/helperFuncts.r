@@ -7,7 +7,7 @@
 `%between%` <- function(x, rng) x >= rng[1] & x <= rng[2]
 
 rip <- function(pack) {
-    if(!suppressWarnings(suppressMessages(require(pack, character.only = TRUE)))) {
+    if(!require(pack, character.only = TRUE, quietly = TRUE)) {
         message(paste0("unable to load package ", pack,
                        ": attempting to download & then load"))
         install.packages(pack)
@@ -24,7 +24,7 @@ is.between <- function(x, l, u) {
 
 pckReq <- function(pckName) {
     if(!paste0('package:', pckName) %in% search())
-        rip(pckName, character.only=TRUE, quietly = TRUE)
+        rip(pckName)
 }
 
 xtsF <- function(x) {
@@ -87,11 +87,11 @@ listN <- function(...){
 }
 
 nameListObjects <- function(LIST, ENV = NULL, NAMES.ONLY = FALSE) {
+    pckReq('digest')
     if(is.null(ENV)) ENV <- .GlobalEnv
-    pckReq(digest)
-    list.md5   <- sapply(LIST, digest)
-    env.names  <- ls(envir = ENV)
-    env.md5    <- sapply(env.names, function(x)digest(get(x, envir = ENV)))
+    list.md5 <- sapply(LIST, digest)
+    env.names <- ls(envir = ENV)
+    env.md5 <- sapply(env.names, function(x) digest(get(x, envir = ENV)))
     list.names <- env.names[match(list.md5, env.md5)]
     if(NAMES.ONLY) list.names else setNames(LIST, list.names)
 }
@@ -295,8 +295,7 @@ findMaxVARLag <- function(varData, firstMax=12, crit = "SC(n)")
 
 testVar <- function(dframe, nAhead = 6, IC = 'SC',
                     periodicity = 'months',
-                    skip = NULL, Vlag = 12, RSTmtx = NULL)
-{
+                    skip = NULL, Vlag = 12, RSTmtx = NULL) {
     # setup
     if(is.null(skip)) { skip <- nrow(dframe) %/% 2 }
     dateList <- index(dframe)
@@ -312,11 +311,10 @@ testVar <- function(dframe, nAhead = 6, IC = 'SC',
                                 nrow = ttlRows, ncol = (length(dateList) - skip)
                                 )
                          ), order.by = extraDate
-                   )
+        )
     }
     # the test loop
-    for (d in (skip+1):length(dateList))
-    {
+    for (d in (skip+1):length(dateList)) {
         testName <- paste0('from:', dateList[d]) # need to stick this on later
         if (is.null(RSTmtx))
         {
@@ -336,7 +334,7 @@ testVar <- function(dframe, nAhead = 6, IC = 'SC',
             testPack[[v]][, (d - skip + 1)] <- outvec # one variable at a time
         }
     }
-    return(testPack)
+    testPack
 }
 
 # works with the above, to sum POOS rmse
@@ -357,19 +355,19 @@ errTstVar <- function(testRslt)
 varsPredictNewData <- function(varsMODEL, varsDATA, projFWD = 1)
 {
     varsDATA_pp <- varsDATA  # make a frame to extend
-# make the coeff vectors
+    # make the coeff vectors
     for (i in seq_along(get('varresult', varsMODEL)))
-         {
-         assign(paste0('modCoeffs_v', i),
-                get('varresult', varsMODEL)[[i]]$coeff
-                )
-         }
-# find max lag length -- from coeff vector
+    {
+        assign(paste0('modCoeffs_v', i),
+               get('varresult', varsMODEL)[[i]]$coeff
+               )
+    }
+    # find max lag length -- from coeff vector
     maxLag <- max(as.numeric(unlist(regmatches(names(modCoeffs_v1),
                                                gregexpr('\\(?[0-9]+',
                                                         names(modCoeffs_v1))))))
     n = 1
-# make an expanded DF so you can %*% using coeff matrix
+    # make an expanded DF so you can %*% using coeff matrix
     while (n < (1+projFWD))
     {
         env4step <- new.env()
@@ -385,7 +383,7 @@ varsPredictNewData <- function(varsMODEL, varsDATA, projFWD = 1)
                    tail(expandedDF, 1) %*% get(paste0('modCoeffs_v', k)),
                    envir = env4step)
         }
-# join the forecasts together
+        # join the forecasts together
         vvlist = list() # an empty list to contain the variable names
         for (l in seq_along(get('varresult', varsMODEL)))
         {
@@ -393,7 +391,7 @@ varsPredictNewData <- function(varsMODEL, varsDATA, projFWD = 1)
             l = l + 1
         } # this loop puts the names into the list ... use environments?
         print(vvlist)
-# now put it together
+        # now put it together
         nextDate <- seq(last(index(varsDATA_pp)), by = 'mon', length.out = 2)[-1]
         newRow <- xts(do.call(cbind, lapply(vvlist, get, envir = env4step)),
                       order.by = nextDate)
@@ -427,8 +425,8 @@ spiderPOOS <- function(POOStest, series, startYr = 1993, MAINstring = NULL)
 varSuite <- function(VARframe, dateRange, initMax = 9, infoCrit = "FPE", castAhead = 6)
 {
     assign(paste0(VARframe, ".optLag"),
-                  findMaxVARLag(get(VARframe, envir = globalenv())[dateRange],
-                            firstMax = initMax, crit = paste0(infoCrit, "(n)")),
+           findMaxVARLag(get(VARframe, envir = globalenv())[dateRange],
+                         firstMax = initMax, crit = paste0(infoCrit, "(n)")),
            envir = globalenv()
            )
     assign(paste0(VARframe, ".test", castAhead),
@@ -440,7 +438,7 @@ varSuite <- function(VARframe, dateRange, initMax = 9, infoCrit = "FPE", castAhe
            errTstVar(get(paste0(VARframe, ".test", castAhead),
                          envir = globalenv()
                          )
-                    ),
+           ),
            envir = globalenv()
            )
     assign(paste0(VARframe, ".mod"),
