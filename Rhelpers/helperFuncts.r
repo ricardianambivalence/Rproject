@@ -6,19 +6,27 @@
 
 `%between%` <- function(x, rng) x >= rng[1] & x <= rng[2]
 
+mrip <- function(..., install = TRUE){
+    reqFun <- function(pack) {
+        if(!require(pack, character.only = TRUE)) {
+            install.packages(pack)
+            require(pack)
+        }
+    }
+    lapply(..., reqFun)
+}
+
 is.between <- function(x, l, u) {
     b <- c(l, u)
     x %between% b
 }
 
-pckReq <- function(pckName)
-{
+pckReq <- function(pckName) {
     if(!paste0('package:', pckName) %in% search())
         require(pckName, character.only=TRUE, quietly = TRUE)
 }
 
-xtsF <- function(x)
-{
+xtsF <- function(x) {
     # add a smart date switch: http://stackoverflow.com/questions/6194285/dealing-with-messy-dates/7975560#7975560
     pckReq('xts')
     ddx <- xts(x[,-1], order.by = as.POSIXct(x[,1]))
@@ -26,8 +34,7 @@ xtsF <- function(x)
     return(ddx)
 }
 
-meltx <- function(dx)
-{
+meltx <- function(dx) {
     pckReq('reshape2')
     melt(data.frame(date = index(dx), dx), id.vars = 1)
 }
@@ -35,8 +42,7 @@ meltx <- function(dx)
 x2df <- function(XTS) {data.frame('date' = index(XTS), data.frame(coredata(XTS)))}
 
 # read ABS sheet function
-readABS <- function(XLS, SHEET = 'Data1', LineSkip = 9)
-{
+readABS <- function(XLS, SHEET = 'Data1', LineSkip = 9) {
     pckReq('gdata')
     dat <- read.xls(XLS, sheet = SHEET, as.is=TRUE, skip = LineSkip)
     dat[,1] <- XLdate(dat[,1])
@@ -44,8 +50,7 @@ readABS <- function(XLS, SHEET = 'Data1', LineSkip = 9)
     return(xtsF(dat))
 }
 
-readClvFed <- function(URL, SHEET = 'Sheet1', LineSkip = 0, dateType = 'b-y')
-{
+readClvFed <- function(URL, SHEET = 'Sheet1', LineSkip = 0, dateType = 'b-y') {
     pckReq('gdata')
     dat <- read.xls(URL, sheet = SHEET, as.is=TRUE, skip = LineSkip)
     dat[,1] <- XLdate(dat[,1], type = dateType)
@@ -53,13 +58,9 @@ readClvFed <- function(URL, SHEET = 'Sheet1', LineSkip = 0, dateType = 'b-y')
     return(xtsF(dat))
 }
 
-dfxColScl <- function(dfrm, pos=1, idx = 100)
-{
-    sweep(idx*dfrm, 2, dfrm[1,], "/")
-}
+dfxColScl <- function(dfrm, pos=1, idx = 100) sweep(idx*dfrm, 2, dfrm[1,], "/")
 
-tFrac2Dec <- function(x)
-{
+tFrac2Dec <- function(x) {
     hyphSplit <- strsplit(x, "-")
     ch1 <- sapply(hyphSplit,`[`, 1)
     ch2 <- sapply(hyphSplit,`[`, 2)
@@ -73,8 +74,18 @@ tFrac2Dec <- function(x)
     as.integer(ch1) + dec
 }
 
-# }}}
+listN <- function(...){
+    dots <- list(...)
+    inferred <- sapply(substitute(list(...)), function(x) deparse(x)[1])[-1]
+    if(is.null(names(inferred))){
+        names(dots) <- inferred
+    } else {
+        names(dots)[names(inferred) == ""] <- inferred[names(inferred) == ""]
+    }
+    dots
+}
 
+# }}}
 # {{{ plot helpers
 
 vplayout <- function(x,y) viewport(layout.pos.row = x, layout.pos.col = y)
@@ -114,7 +125,6 @@ grid.arrange(gp_RP_PXline, gp_RP_diffbar, heights = c(2/3, 1/3),
 dev.off()
 }
 # }}}
-
 # {{{ pasteboard functions
 fcb <- function(hh = TRUE)
 {
@@ -127,7 +137,6 @@ fcb <- function(hh = TRUE)
 
 fcbx <- function(hh = TRUE) { xtsF( fcb() ) }
 ## }}}
-
 # {{{  Date functions
 dateSwitch <- function(index, lastDay = FALSE, adv = 0)
 {
@@ -206,7 +215,6 @@ dateCompX <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL)
 }
 
 # end date stuff }}}
-
 # {{{ SA a matrix
 mj_SAmat_m <- function(dfx, TO = 1, outGet = 'adjust', BUG = FALSE){
     pckReq('timsac')
@@ -256,7 +264,6 @@ al_easySA <- function(x){
 }
 
 # }}}
-
 # {{{ VAR helpers
 ## VAR helpers require(vars)
 # find the lag length - crit in {'AIC(n)', 'HQ(n)', 'SC(n)', 'FPE(n)'}
