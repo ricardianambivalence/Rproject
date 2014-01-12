@@ -6,15 +6,16 @@
 
 `%between%` <- function(x, rng) x >= rng[1] & x <= rng[2]
 
-mrip <- function(..., install = TRUE){
-    reqFun <- function(pack) {
-        if(!require(pack, character.only = TRUE)) {
-            install.packages(pack)
-            require(pack)
-        }
+rip <- function(pack) {
+    if(!suppressWarnings(suppressMessages(require(pack, character.only = TRUE)))) {
+        message(paste0("unable to load package ", pack,
+                       ": attempting to download & then load"))
+        install.packages(pack)
+        require(pack, character.only = TRUE)
     }
-    lapply(..., reqFun)
 }
+
+mrip <- function(..., install = TRUE) lapply(..., rip)
 
 is.between <- function(x, l, u) {
     b <- c(l, u)
@@ -23,7 +24,7 @@ is.between <- function(x, l, u) {
 
 pckReq <- function(pckName) {
     if(!paste0('package:', pckName) %in% search())
-        require(pckName, character.only=TRUE, quietly = TRUE)
+        rip(pckName, character.only=TRUE, quietly = TRUE)
 }
 
 xtsF <- function(x) {
@@ -83,6 +84,16 @@ listN <- function(...){
         names(dots)[names(inferred) == ""] <- inferred[names(inferred) == ""]
     }
     dots
+}
+
+nameListObjects <- function(LIST, ENV = NULL, NAMES.ONLY = FALSE) {
+    if(is.null(ENV)) ENV <- .GlobalEnv
+    pckReq(digest)
+    list.md5   <- sapply(LIST, digest)
+    env.names  <- ls(envir = ENV)
+    env.md5    <- sapply(env.names, function(x)digest(get(x, envir = ENV)))
+    list.names <- env.names[match(list.md5, env.md5)]
+    if(NAMES.ONLY) list.names else setNames(LIST, list.names)
 }
 
 # }}}
