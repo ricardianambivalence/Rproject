@@ -1,10 +1,25 @@
 # MCJ's R-helper functions
+## {{{ system functions
+# clean up, but don't remove the helpEnv which contains all the helper functions!
+cleanUp <- function() {
+    rm(list = ls(envir = .GlobalEnv)[-grep("helpEnv", ls(envir = .GlobalEnv))],
+       envir = globalenv())
+    gc()
+}
 
-# {{{ general helpers
-
-"%notin%" <- function(x, y) x[!x %in% y]
-
-`%between%` <- function(x, rng) x >= rng[1] & x <= rng[2]
+# detach multiple packages at once
+mdetach <- function(..., unload = FALSE, character.only = FALSE, force = FALSE) {
+    path <- search()
+    locs <- lapply(match.call(expand=FALSE)$..., function(l) {
+        if(is.numeric(l))
+            path[l]
+        else l
+    })
+    lapply(locs, function(l)
+        eval(substitute(detach(.l, unload=.u, character.only=.c, force=.f),
+        list(.l=l, .u=unload, .c=character.only, .f=force))))
+    invisible(NULL)
+}
 
 rip <- function(pack) {
     if(!require(pack, character.only = TRUE, quietly = TRUE)) {
@@ -17,14 +32,37 @@ rip <- function(pack) {
 
 mrip <- function(..., install = TRUE) lapply(..., rip)
 
-is.between <- function(x, l, u) {
-    b <- c(l, u)
-    x %between% b
-}
-
 pckReq <- function(pckName) {
     if(!paste0('package:', pckName) %in% search())
         rip(pckName)
+}
+
+# detach multiple packages at once
+mdetach <- function(..., unload = FALSE, character.only = FALSE, force = FALSE) {
+    path <- search()
+    locs <- lapply(match.call(expand=FALSE)$..., function(l) {
+        if(is.numeric(l))
+            path[l]
+        else l
+    })
+    lapply(locs, function(l)
+        eval(substitute(detach(.l, unload=.u, character.only=.c, force=.f),
+        list(.l=l, .u=unload, .c=character.only, .f=force))))
+    invisible(NULL)
+}
+
+# }}}
+# {{{ general helpers
+
+"%||%" <- function(a, b) if(!is.null(a)) a else b
+
+"%notin%" <- function(x, y) x[!x %in% y]
+
+`%between%` <- function(x, rng) x >= rng[1] & x <= rng[2]
+
+is.between <- function(x, l, u) {
+    b <- c(l, u)
+    x %between% b
 }
 
 xtsF <- function(x) {
@@ -75,6 +113,16 @@ tFrac2Dec <- function(x) {
     as.integer(ch1) + dec
 }
 
+Xfreq <- function(XTS) {
+    switch(periodicity(XTS)$scale,
+           daily = 'day',
+           weekly = 'week',
+           monthly = 'month',
+           quarterly = '3 month',
+           yearly = 'year')
+}
+
+# attach names to list elements -- using similar logic to data.frame
 listN <- function(...){
     dots <- list(...)
     inferred <- sapply(substitute(list(...)), function(x) deparse(x)[1])[-1]
@@ -86,6 +134,7 @@ listN <- function(...){
     dots
 }
 
+# find the names of un-named list elements
 nameListObjects <- function(LIST, ENV = NULL, NAMES.ONLY = FALSE) {
     pckReq('digest')
     if(is.null(ENV)) ENV <- .GlobalEnv
@@ -95,6 +144,9 @@ nameListObjects <- function(LIST, ENV = NULL, NAMES.ONLY = FALSE) {
     list.names <- env.names[match(list.md5, env.md5)]
     if(NAMES.ONLY) list.names else setNames(LIST, list.names)
 }
+
+# remove whitespace from a string
+removeSpaces <- function(S) gsub("[[:space:]]","", S)
 
 # }}}
 # {{{ plot helpers
@@ -275,7 +327,7 @@ al_easySA <- function(x){
 }
 
 # }}}
-# {{{ VAR helpers
+# VAR helpers {{{
 ## VAR helpers require(vars)
 # find the lag length - crit in {'AIC(n)', 'HQ(n)', 'SC(n)', 'FPE(n)'}
 findMaxVARLag <- function(varData, firstMax=12, crit = "SC(n)")
@@ -454,4 +506,4 @@ varSuite <- function(VARframe, dateRange, initMax = 9, infoCrit = "FPE", castAhe
            envir = globalenv()
            )
 }
-# }}}
+# }}} close VAR helpers
