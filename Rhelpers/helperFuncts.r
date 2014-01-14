@@ -149,6 +149,149 @@ nameListObjects <- function(LIST, ENV = NULL, NAMES.ONLY = FALSE) {
 removeSpaces <- function(S) gsub("[[:space:]]","", S)
 
 # }}}
+# misc xts helpers # {{{
+# fill and extend an xts object using AR methods
+# find the date difference of an xts date index
+dayDiff <- function(X) {
+    stopifnot(is.xts(X))
+    as.numeric(as.Date(index(X))) - c(NA, as.numeric(as.Date(index(X[-nrow(X)]))))
+}
+
+# find bps per day
+bpsDay <- function(X) {
+    stopifnot(is.xts(X))
+    as.numeric(diff(X)) / dayDiff(X)
+}
+
+# lapply across an xts object
+na.extend <- function(obj, extend='both') {
+    stopifnot(is.xts(obj))
+    if(extend %in% c('both','start','end','none')){
+        #interpolate the inner part
+        interped <- xts(na.approx(obj, xout = index(obj), na.rm=FALSE), order.by=as.Date(index(obj)))
+        #get the slope of the interped curve (interpolating needs to be done first)
+        slope <- bpsDay(interped)
+        #where would extrapolation end/start at the short/long end of the curve
+        naBounds <- c(range(which(!is.na(obj)))[1] - 1, range(which(!is.na(obj)))[2] + 1)
+        #what slope for the extrapolation
+        slopeFirstLast <- range(which(!is.na(slope)))
+        slopeStartEnd <- slope[slopeFirstLast]
+        #get the extrapolations
+        if ((extend %in% c('both','start')) && (slopeFirstLast[1] > 1)){
+            interped[1:naBounds[1],] <-
+                (
+                 as.numeric(index(interped)[1:naBounds[1]] - index(interped)[naBounds[1] + 1])
+                 * slopeStartEnd[1]
+                 + as.numeric(obj[naBounds[1]+1,])
+                 )
+        }
+        if ((extend %in% c('both','end')) && (slopeFirstLast[2] < nrow(interped))) {
+            interped[naBounds[2]:nrow(interped),] <-
+                as.numeric(index(interped)[naBounds[2]:nrow(interped)]-index(interped)[naBounds[2]-1])*slopeStartEnd[2]+
+                as.numeric(obj[naBounds[2]-1,])
+        }
+        return(interped)
+    }
+    else {
+        warning("Error: use argument extend = 'both' or 'start' or 'end' or 'none'. Default behaviour is 'both'")
+    }
+}
+
+# add an observation to the end of an XTS vector --
+# to do this use a function rather than the lm() object
+addObvAR <- function(XTS, iter = 1) {
+    # takes an XTS vector and returns the next obsevation as calc'd by AR1
+    if(iter == 0) {
+        rbind(XTS, xts())
+    } else {
+        nextObvX <- xts(lm(XTS ~ lag(XTS))$coefficients %*% c(1, last(XTS)),
+                        order.by = nextDate(XTS))
+        XTS <- rbind(XTS, nextObvX)
+        addObvAR(XTS, (iter - 1))
+    }
+}
+
+# extend a series of dates which index an xts object
+addDates <- function(Xts, N) {
+    # objective: to extend a series of dates
+    # definitions and tests
+    stopifnot(is.xts(Xts))
+    stopifnot(N > 0)
+    index(Xts) <- as.Date(index(Xts))
+    all1st <- all(unique(as.POSIXlt(index(Xts))$mday) == 1)
+    # functions
+    ext.day <- function(N, dString) index(last(Xts)) + 1:N
+    ext.week <- function(N, dString) index(last(Xts)) + 7 * (1:N)
+    ext.months <- function(N, dString) {
+        # test to see if all first dates are 1
+        if(!all1st) {
+            dd <- toLastDay(index(last(Xts)), toFirst=TRUE)
+            toLastDay(seq(dd, by = dString, length.out = (N + 1))[-1])
+        } else {
+            seq(index(last(Xts)), by = dString, length.out = (N + 1))[-1]
+        }
+    }
+    addPeriods <- function(Xts.period) {
+        ext.call <- Xts.period
+        if(ext.call %in% c('month', '3 month')) ext.call <- 'months'
+        extras <- xts(NULL,
+                      order.by = get(paste0("ext.",
+                                            ext.call))(N, Xts.period)
+                      )
+        merge(Xts, extras)
+    }
+    if(Xfreq(Xts) %in% c('month', '3 month') && !all1st) {
+        warning("As mon-date was not uniformly 1st, ALL mon-dates were coerced to last of month")
+        toLastDay(addPeriods(Xfreq(Xts)))
+    } else {
+        addPeriods(Xfreq(Xts))
+    }
+}
+
+# extend the date by one period
+nextDate <- function(XTS) { addDates(XTS, 1) }
+
+na.ARextend <- function(Xts, ARorder = 1, ADD = 0, pWindow = 120){
+# takes an xts object and extends using AR of ARorder, forecasting forward by ADD periods,
+# using max(pWindow, available) observations to find the paramters.
+# to iterate over cols of an xts
+# -> do.call(cbind, lapply(1:ncol(xxd_ext), function(N) na.ARextend(xxd_ext[,N])))
+    pckReq("xts")
+    stopifnot(ncol(Xts) == 1)
+# make the regression matrix to regress on
+    makeRegMatrix <- function() {
+        dataWindow <- do.call(cbind, lapply(0:ARorder,
+                                            function(X) tail(lag(Xts_trim, X),
+                                                             pWindow)))
+        regMatrix <- cbind(dataWindow[,1],
+                           rep(1, nrow(dataWindow)),
+                           dataWindow[, 2:ncol(dataWindow)]
+                           )[-c(1:ARorder), ]
+    }
+# some definitions
+    Xts_filled <- na.approx(Xts, na.rm=FALSE)
+    Xts_trim <- Xts_filled[complete.cases(Xts_filled),]
+    regMat <- makeRegMatrix()
+    coeffs <- lm.fit(y = regMat[, 1], x = regMat[, -1])$coefficients
+# add on NAs if ADD is not 0
+    if(ADD) Xts_filled <- addDates(Xts_filled, N = ADD)
+    firstNonNA <- min(which(!is.na(Xts_filled)))
+    locNAs <- which(is.na(Xts_filled)) # find the NA elements (if there are any)
+    locNAs <- locNAs[locNAs > firstNonNA]
+    for (n in seq_along(locNAs)) {
+        vals <- c(1, sapply(1:ARorder, function(i) Xts_filled[locNAs[n] - i, ]))
+        Xts_filled[locNAs[n],] <- coeffs %*% vals
+    }
+    return(Xts_filled)
+}
+# }}}
+# looping helpers {{{
+# lapply across an xts object
+mapXts <- function(Xts, cFUN, ...) {
+    if(!is.xts(Xts)) stop("Must supply function with xts object")
+    "[<-"(Xts, ,vapply(Xts, cFUN, ..., FUN.VALUE = numeric(nrow(Xts))))
+}
+# }}}
 # {{{ plot helpers
 
 vplayout <- function(x,y) viewport(layout.pos.row = x, layout.pos.col = y)
