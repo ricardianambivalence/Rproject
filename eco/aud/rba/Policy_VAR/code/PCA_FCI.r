@@ -49,26 +49,9 @@ dataBoat <- function(){
     qRef <- qRef[complete.cases(qRef),]
     odbcClose(conXL)
     #
-    # date flags
-    dateFlag <- paste0("1985", "::")
-    modStartDate <- as.Date("1985-03-01")
-    modStartDateFlag <- paste0(modStartDate, '::')
-    prelimFlag <- paste0(as.numeric(substr(dateFlag, 1,4)) - 1, "::")
-    #
     # converts char to +/-1: working around an RODBC 'feature'
     map <- map[,-1]
     map[3,] <- ifelse(map[3,]=='d', -1, 1)
-    #
-    # prep the QoQ ref series (it's only rDGI)
-    rGDIx <- xtsF(qRef)
-    #
-    # clean out the ref series
-    pcaNames <- names(map[, which(map[4,] == 'pca')])
-    fciNames <- names(map[, which(map[4,] == 'fci')])
-    bothNames <- names(map[, which(map[4,] == 'both')])
-    refNames <- names(map[, which(map[4,] == 'ref')])
-    grfNames <- names(map[, which(map[5,] == 'gf')])
-    rbaNames <- names(map[, which(map[6,] == 'y')])
     #
     tt <- as.Date(dd[,1]) # note this is in descending order
     dd <- dd[!is.na(dd[,1]),][,-1]
@@ -108,15 +91,33 @@ dataBoat <- function(){
 }
 
 dataMac <- function(){
-    load(file.path(dataPATH, "audPCA.RData"), envir = globalenv())
+    load(file = file.path(dataPATH, "audPCA.RData"),
+         envir = new <- new.env()
+         )
+    s_dat
 }
 
-s_dat <- switch(sysname,
-                Windows = dataBoat(),
-                Dawrin  = dataMac())
+# get data :: the data input model is broken ...
+s_dat <- if(sysname == 'Darwin') dataMac() else dataBoat()
+
+# date flags
+dateFlag <- paste0("1985", "::")
+modStartDate <- as.Date("1985-03-01")
+modStartDateFlag <- paste0(modStartDate, '::')
+
+# prep the QoQ ref series (it's only rDGI)
+rGDIx <- xtsF(qRef)
+#
+# clean out the ref series
+pcaNames <- names(map[, which(map[4,] == 'pca')])
+fciNames <- names(map[, which(map[4,] == 'fci')])
+bothNames <- names(map[, which(map[4,] == 'both')])
+refNames <- names(map[, which(map[4,] == 'ref')])
+grfNames <- names(map[, which(map[5,] == 'gf')])
+rbaNames <- names(map[, which(map[6,] == 'y')])
 
 # fill in gaps, and extend using AR1 -- then subset for date
-s_datSub <- mapXtsL(s_dat[dateFlag], na.ARextend)
+s_datSub <- mapXts(s_dat[dateFlag], na.ARextend)
 tts <- index(s_datSub)
 
 # split the transformed data into parts
