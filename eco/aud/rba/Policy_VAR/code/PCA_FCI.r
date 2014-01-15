@@ -3,13 +3,11 @@
 # A :: Matthew Coogan Johnson
 # S :: Sunday 14 October 2012
 
-## TODO -- try this as a 3mma rather than using the stacking approach - what changes?
-## add a VAR with the UR: aD, aFCI, UR, cCPI, cash (and perhaps commodity prices?)
-
+## TODO: get working on the mac!
 # system setup, packages and functions {{{
 cleanUp()
-sysname <- Sys.info()[['sysname']]
-sysHead <- switch(sysname,
+sysName <- Sys.info()[['sysname']]
+sysHead <- switch(sysName,
                   Windows = "S:/Rates Research",
                   Darwin = "~/Rproject")
 # load packages
@@ -24,90 +22,60 @@ mrip(c(
        'latticeExtra'
        ))
 # get ecoPCA helper functions
-source(file.path(sysHead, "Rhelpers/ecoPCAhelpers.r"))
+source(file.path(sysHead, "autotools/Rhelpers/ecoPCAhelpers.r"))
 # and get the IB functions
 source(file.path(sysHead, "derivs/stir/aud/code/ibFunctions.r"))
 
 # }}}
-## path stuff {{{
+## {{{ path stuff
 projectPATH <- file.path(sysHead, "eco/aud/rba/Policy_VAR")
 plotPATH <- file.path(projectPATH, "pics")
 dataPATH <- file.path(projectPATH, 'data')
 codePATH <- file.path(projectPATH, 'code')
 # }}}
-#  get the data etc {{{
+#  {{{ get the data etc
 dataBoat <- function(){
-    # this gets the data if the code is executed at UBS
-    rip('RODBC')
+    mrip('RODBC')
+    dataEnv <- new.env(parent = globalenv())
     conXL <- odbcConnectExcel(xls.file="S:/Rates Research/eco/aud/rba/policy_var/data/blueprint.xls")
     s1 <- 'intor'
-    dd <- sqlFetch(conXL, s1)
+    dataEnv$dd <- sqlFetch(conXL, s1)
     s2 <- 'mapR'
-    map <- sqlFetch(conXL, s2, as.is=TRUE)
+    dataEnv$map <- sqlFetch(conXL, s2, as.is=TRUE)
     s3 <- 'Q2R'
-    qRef <- sqlFetch(conXL, s3, as.is=TRUE)
-    qRef <- qRef[complete.cases(qRef),]
+    dataEnv$qRef <- sqlFetch(conXL, s3, as.is=TRUE)
+    dataEnv$qRef <- dataEnv$qRef[complete.cases(dataEnv$qRef),]
     odbcClose(conXL)
-    #
-    # converts char to +/-1: working around an RODBC 'feature'
-    map <- map[,-1]
-    map[3,] <- ifelse(map[3,]=='d', -1, 1)
-    #
-    tt <- as.Date(dd[,1]) # note this is in descending order
-    dd <- dd[!is.na(dd[,1]),][,-1]
-    allD_x <- xts(dd, order.by=tt)
-    #
-    # crush a few bugs
-    allD_x$m_cons <- abs(allD_x$m_cons) # fix a bbg bug
-    allD_x$m_k <- abs(allD_x$m_k) # fix a bbg bug
-    #
-    # transform the data according to the map
-    logNames <- names(map)[which(map[2,] == 'ln')]
-    dd_ln <- log(allD_x[,logNames])
-    #
-    diffNames <- names(map)[which(map[2,] == 'D')]
-    dd_diff <- diff(allD_x[,diffNames])
-    #
-    lvlNames <- names(map)[which(map[2,] == 'lvl')]
-    dd_lvl <- allD_x[,lvlNames]
-    #
-    lnDiffNames <- names(map)[which(map[2,] == 'lnD')]
-    dd_lnDiff <- diff(allD_x[,lnDiffNames], log=TRUE)
-    #
-    # combine stationary data --
     # NOTE: this is the re-entry point for saved down data :: loads a local s_dat
-    s_dat <- cbind(dd_ln, dd_diff, dd_lvl, dd_lnDiff)
-    #
-    # fix some structural breaks
-    e1 <- '1989-01-01'
-    e2 <- '1990-01-01'
-    n1  <- which(index(s_dat) == e1)
-    n2  <- which(index(s_dat) == e2)
-    s_dat[n1, c('c_bus', 'c_pers')] <- (coredata(s_dat[n1-1, c('c_bus', 'c_pers')]) +
-                                        coredata(s_dat[n1+1, c('c_bus', 'c_pers')]))/2
-    s_dat[n2, c('c_hhd')] <- (coredata(s_dat[n2-1, c('c_hhd')]) +
-                              coredata(s_dat[n2+1, c('c_hhd')]))/2
-    s_dat
+    save(dataEnv, file = file.path(dataPATH, "audPCAdataE.RData"))
+    assign("dataEnv", dataEnv, envir = globalenv())
 }
 
 dataMac <- function(){
-    load(file = file.path(dataPATH, "audPCA.RData"),
-         envir = new <- new.env()
-         )
-    s_dat
+    load(file = file.path(dataPATH, "audPCAdataE.RData"))
+    objName <- ls()[[1]]
+    assign(objName, get(objName), envir = globalenv())
 }
 
-# get data :: the data input model is broken ...
-s_dat <- if(sysname == 'Darwin') dataMac() else dataBoat()
+switch(sysName,
+       Windows = dataBoat(),
+       Darwin  = dataMac()
+       )
 
+# }}} end get-data :: now to prepare it
+# pre-processing of data {{{
 # date flags
 dateFlag <- paste0("1985", "::")
 modStartDate <- as.Date("1985-03-01")
 modStartDateFlag <- paste0(modStartDate, '::')
 
+# converts char to +/-1: working around an RODBC 'feature'
+map <- dataEnv$map[,-1]
+map[3,] <- ifelse(map[3,]=='d', -1, 1)
+
 # prep the QoQ ref series (it's only rDGI)
-rGDIx <- xtsF(qRef)
-#
+rGDIx <- xtsF(dataEnv$qRef)
+
 # clean out the ref series
 pcaNames <- names(map[, which(map[4,] == 'pca')])
 fciNames <- names(map[, which(map[4,] == 'fci')])
@@ -115,6 +83,40 @@ bothNames <- names(map[, which(map[4,] == 'both')])
 refNames <- names(map[, which(map[4,] == 'ref')])
 grfNames <- names(map[, which(map[5,] == 'gf')])
 rbaNames <- names(map[, which(map[6,] == 'y')])
+
+tt <- as.Date(dataEnv$dd[,1]) # note this is in descending order
+dd <- dataEnv$dd[!is.na(dataEnv$dd[,1]),][,-1]
+allD_x <- xts(dd, order.by=tt)
+
+# crush a few bugs
+allD_x$m_cons <- abs(allD_x$m_cons) # fix a bbg bug
+allD_x$m_k <- abs(allD_x$m_k) # fix a bbg bug
+
+# transform the data according to the map
+logNames <- names(map)[which(map[2,] == 'ln')]
+dd_ln <- log(allD_x[,logNames])
+
+diffNames <- names(map)[which(map[2,] == 'D')]
+dd_diff <- diff(allD_x[,diffNames])
+
+lvlNames <- names(map)[which(map[2,] == 'lvl')]
+dd_lvl <- allD_x[,lvlNames]
+
+lnDiffNames <- names(map)[which(map[2,] == 'lnD')]
+dd_lnDiff <- diff(allD_x[,lnDiffNames], log=TRUE)
+
+# combine stationary data --
+s_dat <- cbind(dd_ln, dd_diff, dd_lvl, dd_lnDiff)
+
+# fix some structural breaks
+e1 <- '1989-01-01'
+e2 <- '1990-01-01'
+n1  <- which(index(s_dat) == e1)
+n2  <- which(index(s_dat) == e2)
+s_dat[n1, c('c_bus', 'c_pers')] <- (coredata(s_dat[n1-1, c('c_bus', 'c_pers')]) +
+                                    coredata(s_dat[n1+1, c('c_bus', 'c_pers')]))/2
+s_dat[n2, c('c_hhd')] <- (coredata(s_dat[n2-1, c('c_hhd')]) +
+                          coredata(s_dat[n2+1, c('c_hhd')]))/2
 
 # fill in gaps, and extend using AR1 -- then subset for date
 s_datSub <- mapXts(s_dat[dateFlag], na.ARextend)
@@ -131,7 +133,7 @@ cCPI6 <- rollapplyr(na.ARextend(s_dat$cCPI), 6, mean)[dateFlag]
 ur3 <- rollapplyr(na.ARextend(s_dat$ur), 3, mean)[dateFlag]
 nairu3 <- rollapplyr(na.ARextend(s_dat$nairu), 3, mean)[dateFlag]
 
-## }}}
+## }}} end pre-processing of data
 ## {{{ RBA VAR -->
 ############
 ## RBA PCA##
@@ -302,7 +304,6 @@ GRF_sfx <- scale(GRF_f_x)[,1]
 
 ##### ===> GRF_sfx is your Watson-ized GRF <=== #####
 # }}}
-
 ### {{{ ===> VAR Models
 ###^^^^^^^^^^^^^^###
 ###  VAR Models  ###
@@ -687,7 +688,7 @@ lapply(objectsToBuild, function(Ob) {
 )
 # }}}
 ## {{{ integrate with market pricing ==>
-rip('Rbbg')
+
 histStart <- as.Date("1993-01-01")
 today <- as.Date(as.POSIXlt(Sys.time(), tz='Australia/Sydney')) # end date is today
 ## bbg tickers
@@ -1229,7 +1230,7 @@ if (fromSource())
 
 }
 ## }}}
-# {{{ match FCI to short end curve shape
+# match FCI to short end curve shape {{{
 
 # a custom function for making a period factor
 addPeriod <- function(DF, DATE){
