@@ -1,6 +1,15 @@
 # MCJ's R-helper functions
 ## {{{ system functions
 # clean up, but don't remove the helpEnv which contains all the helper functions!
+# returns system name :: Darwin or Windows
+sysName <- function() Sys.info()[['sysname']]
+
+# returns TRUE if the head of the call is 'base::source'
+fromSource <- function() {
+    length(sys.frame()) >= 4 && sys.call(1)[[1]] == 'base::source'
+}
+
+# clean up .GlobalEnv except for helpEnv
 cleanUp <- function() {
     rm(list = ls(envir = .GlobalEnv)[-grep("helpEnv", ls(envir = .GlobalEnv))],
        envir = globalenv())
