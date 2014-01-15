@@ -3,7 +3,7 @@
 # A :: Matthew Coogan Johnson
 # S :: Sunday 14 October 2012
 
-## TODO: get working on the mac!
+## TODO: get working on the mac! fix the BBG fudge so it works in windows
 # system setup, packages and functions {{{
 cleanUp()
 sysName <- Sys.info()[['sysname']]
@@ -689,58 +689,84 @@ lapply(objectsToBuild, function(Ob) {
 # }}}
 ## {{{ integrate with market pricing ==>
 
-histStart <- as.Date("1993-01-01")
-today <- as.Date(as.POSIXlt(Sys.time(), tz='Australia/Sydney')) # end date is today
-## bbg tickers
-securities <- c("RBACTRD Index", "IB1 Comdty", "IB2 Comdty", "IB3 Comdty", "IB4 Comdty", "IB5 Comdty", "IB6 Comdty",
-                "IB7 Comdty", "IB8 Comdty", "IB9 Comdty", "IB10 Comdty", "IB11 Comdty", "IB12 Comdty",
-                "IB13 Comdty", "IB14 Comdty", "IB15 Comdty", "IB16 Comdty", "IB17 Comdty", "IB18 Comdty")
-mktRef <- c("RBACTRD Index", "ADSWAP1Q Curncy", "ADSWAP2Q Curncy", "ADSWAP3Q Curncy",
-            "ADSWAP5 Curncy", "ADSWAP10 Curncy", "GACGB2 Index", "GACGB3 Index")
-midFields <- c("BID", "ASK")
-#
-# connect to bbg and get data into usable format
-conn <- blpConnect(blpapi.jar.file = helpEnv$Bjar, verbose=FALSE)
-currentMkt <- bdp(conn, securities[-1], midFields)
-currentRBA <- bdp(conn, "RBACTRD Index", "PX_LAST")
-histMkt <- bdh(conn, mktRef, "PX_LAST", start_date = histStart, include.non.trading.days = FALSE)
-blpDisconnect(conn) # now close the connection
-#
-# unstack the historical data and add a spread
-IRSx <- na.locf(bbgUnstacker(histMkt))
-IRSx_m <- apply.monthly(IRSx, mean)
-index(IRSx_m) <- toLastDay(index(IRSx_m), toFirst=TRUE)
-IRSx_m$cash2y <- with(IRSx_m, 100*(ADSWAP2Q - RBACTRD))
-IRSx_m$cash3y <- with(IRSx_m, 100*(ADSWAP3Q - RBACTRD))
-IRSx_m$cash2g <- with(IRSx_m, 100*(GACGB2 - RBACTRD))
-IRSx_m$cash3g <- with(IRSx_m, 100*(GACGB3 - RBACTRD))
-IRSx_m$i2x5 <- with(IRSx_m, 100*(ADSWAP5 - ADSWAP2Q))
-IRSx_m$i5x10 <- with(IRSx_m, 100*(ADSWAP10 - ADSWAP5))
+BBGon <- FALSE
+getBBG <- function(BBGon){
 
-# take the mid
-currentMkt$MID <- (currentMkt[,1] + currentMkt[,2])/2
+    bbgEnv <- new.env(parent = globalenv())
+    histStart <- as.Date("1993-01-01")
+    today <- as.Date(as.POSIXlt(Sys.time(), tz='Australia/Sydney')) # end date is today
+    ## bbg tickers
+    securities <- c("RBACTRD Index", "IB1 Comdty", "IB2 Comdty", "IB3 Comdty",
+                    "IB4 Comdty", "IB5 Comdty", "IB6 Comdty",
+                    "IB7 Comdty", "IB8 Comdty", "IB9 Comdty",
+                    "IB10 Comdty", "IB11 Comdty", "IB12 Comdty",
+                    "IB13 Comdty", "IB14 Comdty", "IB15 Comdty",
+                    "IB16 Comdty", "IB17 Comdty", "IB18 Comdty"
+                    )
+    mktRef <- c("RBACTRD Index", "ADSWAP1Q Curncy", "ADSWAP2Q Curncy", "ADSWAP3Q Curncy",
+                "ADSWAP5 Curncy", "ADSWAP10 Curncy", "GACGB2 Index", "GACGB3 Index"
+                )
+    midFields <- c("BID", "ASK")
+    #
+    # connect to bbg and get data into usable format
+    conn <- blpConnect(blpapi.jar.file = helpEnv$Bjar, verbose=FALSE)
+    currentMkt <- bdp(conn, securities[-1], midFields)
+    currentRBA <- bdp(conn, "RBACTRD Index", "PX_LAST")
+    histMkt <- bdh(conn, mktRef, "PX_LAST", start_date = histStart, include.non.trading.days = FALSE)
+    blpDisconnect(conn) # now close the connection
+    #
+    # unstack the historical data and add a spread
+    bbgEnv$IRSx <- na.locf(bbgUnstacker(histMkt))
+    bbgEnv$IRSx_m <- apply.monthly(bbgEnv$IRSx, mean)
+    bbgEnv$index(IRSx_m) <- toLastDay(index(bbgEnv$IRSx_m), toFirst=TRUE)
+    bbgEnv$IRSx_m$cash2y <- with(bbgEnv$IRSx_m, 100*(ADSWAP2Q - RBACTRD))
+    bbgEnv$IRSx_m$cash3y <- with(bbgEnv$IRSx_m, 100*(ADSWAP3Q - RBACTRD))
+    bbgEnv$IRSx_m$cash2g <- with(bbgEnv$IRSx_m, 100*(GACGB2 - RBACTRD))
+    bbgEnv$IRSx_m$cash3g <- with(bbgEnv$IRSx_m, 100*(GACGB3 - RBACTRD))
+    bbgEnv$IRSx_m$i2x5 <- with(bbgEnv$IRSx_m, 100*(ADSWAP5 - ADSWAP2Q))
+    bbgEnv$IRSx_m$i5x10 <- with(bbgEnv$IRSx_m, 100*(ADSWAP10 - ADSWAP5))
 
-# stick mids together with RBA rate
-midList <- as.list(c(currentRBA$PX_LAST, t(currentMkt$MID)))
-mid_x <- xts(as.data.frame(midList), order.by = today)
-names(mid_x) <- c('RBACTRD', 'IB1', 'IB2', 'IB3', 'IB4', 'IB5', 'IB6', 'IB7', 'IB8', 'IB9', 'IB10', 'IB11',
-                  'IB12', 'IB13', 'IB14', 'IB15', 'IB16', 'IB17', 'IB18')
-mid_x[, -1] <- 100 - mid_x[, -1]
+    # take the mid
+    currentMkt$MID <- (currentMkt[,1] + currentMkt[,2])/2
 
-meetingDates <- firstTuesday(index(mid_x), numcol = 17)
-adjIbRate <- ibAdjusteR(mid_x, meetingDates) # this throws an error on early month pre meeting date
-adjIb_x <- xts(t(coredata(adjIbRate)),
-               order.by = as.Date(t(meetingDates$meetDay)[,1]))
+    # stick mids together with RBA rate
+    midList <- as.list(c(currentRBA$PX_LAST, t(currentMkt$MID)))
+    mid_x <- xts(as.data.frame(midList), order.by = today)
+    names(mid_x) <- c('RBACTRD',
+                      'IB1', 'IB2', 'IB3', 'IB4', 'IB5', 'IB6',
+                      'IB7', 'IB8', 'IB9', 'IB10', 'IB11', 'IB12',
+                      'IB13', 'IB14', 'IB15', 'IB16', 'IB17', 'IB18'
+                      )
+    mid_x[, -1] <- 100 - mid_x[, -1]
 
-index(adjIb_x) <- toLastDay(index(adjIb_x), toFirst = TRUE)
+    meetingDates <- firstTuesday(index(mid_x), numcol = 17)
+    adjIbRate <- ibAdjusteR(mid_x, meetingDates) # may be buggy pre RBA
+    adjIb_x <- xts(t(coredata(adjIbRate)),
+                   order.by = as.Date(t(meetingDates$meetDay)[,1]))
 
+    index(adjIb_x) <- toLastDay(index(adjIb_x), toFirst = TRUE)
 
-cash4c_6$mkt <- cash4c_6$ave
-cash4c_6$mkt[index(tail(cash4c_6, 6))] <- adjIb_x[index(tail(cash4c_6, 6))]
+# make local copies of the cash4c variables ...
+    cash4c_6 <- get('cash4c_6', env = .GlobalEnv)
+    cash4c_12 <- get('cash4c_12', env = .GlobalEnv)
 
-cash4c_12$mkt <- cash4c_12$ave
-cash4c_12$mkt[index(tail(cash4c_12, 12))] <- adjIb_x[index(tail(cash4c_12,12))]
+    cash4c_6$mkt <- cash4c_6$ave
+    cash4c_6$mkt[index(tail(cash4c_6, 6))] <- adjIb_x[index(tail(cash4c_6, 6))]
+
+    cash4c_12$mkt <- cash4c_12$ave
+    cash4c_12$mkt[index(tail(cash4c_12, 12))] <- adjIb_x[index(tail(cash4c_12,12))]
+# assign back into globalenv
+    assign('cash4c_6', cash4c_6, envir = globalenv())
+    assign('cash4c_12', cash4c_12, envir = globalenv())
+}
 ## }}} close market pricing stuff
+
+testFun <- function(){
+    print('test1')
+    print('test2')
+}
+debug(testFun)
+testFun()
 #### {{{ ===> Charts <=== ####
 
 pp_DataScores <- function()
