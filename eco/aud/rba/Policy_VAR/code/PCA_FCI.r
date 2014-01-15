@@ -761,12 +761,6 @@ getBBG <- function(BBGon){
 }
 ## }}} close market pricing stuff
 
-testFun <- function(){
-    print('test1')
-    print('test2')
-}
-debug(testFun)
-testFun()
 #### {{{ ===> Charts <=== ####
 
 pp_DataScores <- function()
