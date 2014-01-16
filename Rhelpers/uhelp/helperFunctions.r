@@ -722,8 +722,7 @@ PointReg <- function(Xts, a=1, b=2, mainString = NULL, xLab = NULL, yLab = NULL)
 }
 
 ## unstack a bbg data call and return an xts
-bbgUnstacker <- function(bbgStack, noWE = FALSE, dotRename = TRUE)
-{
+bbgUnstacker <- function(bbgStack, noWE = FALSE, dotRename = TRUE) {
     if(is.null(bbgStack$ticker)) {
         return(bbgStack)
         stop
