@@ -158,6 +158,12 @@ nameListObjects <- function(LIST, ENV = NULL, NAMES.ONLY = FALSE) {
 removeSpaces <- function(S) gsub("[[:space:]]","", S)
 
 # }}}
+# stringHelpers {{{
+dotRenamer <- function(dd) {
+    names(dd) <- gsub("^\\.+|\\.[^.]*$", "", names(dd), perl=TRUE)
+    return(dd)
+}
+# }}} close stringHelpers
 # misc xts helpers # {{{
 # fill and extend an xts object using AR methods
 # find the date difference of an xts date index
@@ -659,3 +665,22 @@ varSuite <- function(VARframe, dateRange, initMax = 9, infoCrit = "FPE", castAhe
            )
 }
 # }}} close VAR helpers
+# bbgHelpers {{{
+bbgUnstacker <- function(bbgStack, noWE = FALSE, dotRename = TRUE) {
+    if(is.null(bbgStack$ticker)) {
+        return(bbgStack)
+        stop
+    }
+    xlist = list()
+    for (prodName in unique(bbgStack$ticker)) {
+        dd <- subset(bbgStack, bbgStack$ticker == prodName)[,-1]
+        xlist[[prodName]] <- xtsF(dd)
+    }
+    mergeLists <- do.call(merge.xts, lapply(xlist, FUN = function(X) X ))
+    if(noWE) {
+        outList <- mergeLists[!weekdays(index(mergeLists)) %in% c('Saturday', 'Sunday')]
+    } else outList <- mergeLists
+    if(dotRename) {outList <- dotRenamer(outList)}
+    return(outList)
+}
+# }}} close bbgHelpers
