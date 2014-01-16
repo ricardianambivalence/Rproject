@@ -686,7 +686,7 @@ lapply(objectsToBuild, function(Ob) {
 # }}}
 ## {{{ integrate with market pricing ==>
 
-BBGon <- TRUE
+BBGon <- FALSE
 getBBG <- function(BBGon){
 # gets bbg data, assigns to env, saves env and then moves it to .GlobalEnv
     bbgEnv <- new.env(parent = globalenv())
