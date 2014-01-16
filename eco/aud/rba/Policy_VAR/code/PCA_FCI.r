@@ -1,8 +1,5 @@
 # the new PCA --> VAR --> Cash model for Australia
 
-# A :: Matthew Coogan Johnson
-# S :: Sunday 14 October 2012
-
 ## TODO: get working on the mac! fix the BBG fudge so it works in windows
 # system setup, packages and functions {{{
 cleanUp()
