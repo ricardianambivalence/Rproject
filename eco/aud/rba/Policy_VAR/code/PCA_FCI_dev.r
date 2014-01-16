@@ -1,6 +1,6 @@
 # the new PCA --> VAR --> Cash model for Australia
 
-## TODO: get working on the mac! fix the BBG fudge so it works in windows
+## TODO: fix the sign problem on the FCI (and demand index)
 # system setup, packages and functions {{{
 cleanUp()
 sysName <- Sys.info()[['sysname']]
