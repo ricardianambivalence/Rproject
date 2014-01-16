@@ -435,6 +435,73 @@ dateCompX <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL)
                      oldDates = TRUE)
 }
 
+# Date Functions
+toLastDay <- function(dateObj, monAdv=0, toFirst = FALSE) {
+    # takes date object, transforms and returns a dat object
+    dateWarp <- function(dateObj) {
+        tt <- as.POSIXlt(dateObj)
+        tt$mon <- tt$mon + monAdv # moves the month
+        tt$mday <- 1L             # make date the first
+        if(toFirst) {
+            tt <- as.Date(tt)
+        } else {
+            tt$mon <- tt$mon + 1L # go to the first of the next month
+            tt <- as.Date(tt) - 1L # subtract one day, yielding the last of prior month
+        }
+    }
+    if(class(dateObj)[1] %in% c("POSIXct", "POSIXt", "Date")) {
+        dateWarp(dateObj)
+    } else {
+        message("input class NOT %in% {POSIXt, POSIXct, Date}; if is.xts(dateObj) toLastDay() uses object")
+        stopifnot(is.xts(dateObj))
+        index(dateObj) <- dateWarp(index(dateObj))
+        return(dateObj)
+    }
+}
+
+# make dates on Qtr ends - note similarity with toLastDay -> abstraction!
+toQtrMons <- function(dateObj, toFirst=FALSE) {
+    tt <- as.POSIXlt(dateObj)
+    tt$mday <- 1L # make first of month
+    tt$mon <- tt$mon + (2 - tt$mon %% 3)
+    if(toFirst) {
+        tt <- as.Date(tt)
+    } else {
+        tt$mon <- tt$mon + 1L # go to the first of the next month
+        tt <- as.Date(tt) - 1L # subtract one day, yielding the last of prior month
+    }
+    return(tt)
+}
+
+# takes qtrtly xts and converts to lower frequency: day, week or month
+qtr2Lower <- function(QD, lowerFreq, monShift = 0L, filler = "na.approx") {
+    stopifnot(is.xts(QD), lowerFreq %in% c('day', 'week', 'mon'))
+    QD_adj <- QD
+    fromD <- toLastDay(index(first(QD)), -2L, toFirst = TRUE)
+    if(lowerFreq == 'mon') {
+        toD <- toLastDay(index(last(QD)), toFirst = TRUE)
+        q2m_dates <- toLastDay(seq(fromD, toD, by = lowerFreq))
+        index(QD_adj) <- toLastDay(index(QD), monAdv = monShift)
+    } else {
+        toD <- toLastDay(index(last(QD)))
+        q2m_dates <- seq(fromD, toD, by = lowerFreq)
+        index(QD_adj) <- toLastDay(index(QD), monAdv = monShift - 1)
+    }
+    emptyX <- xts(, q2m_dates)
+    mm <- merge(emptyX, QD_adj)
+    mm_filled <- do.call(filler, list(mm))
+    if(lowerFreq == 'mon') {
+        return(mm_filled)
+    } else {
+        return(lag(mm_filled))
+    }
+}
+
+# make Qtrly monthly --> default is with obv in the mid qtr
+qtr2Mon <- function(QD, monShift = -1L, filler = "na.approx") {
+    qtr2Lower(QD, lowerFreq = 'mon', monShift, filler)
+}
+
 # end date stuff }}}
 # {{{ SA a matrix
 mj_SAmat_m <- function(dfx, TO = 1, outGet = 'adjust', BUG = FALSE){
