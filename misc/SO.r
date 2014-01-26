@@ -120,3 +120,43 @@ countSplit_2df <- function(DF){
 }
 
 countSplit_2df(df)
+
+# more fking about with rewindX
+
+xd <- xts(rnorm(10), order.by = seq(Sys.Date(), by = 'week', length.out=10))
+xxd <- 1
+
+# rewind an xts object by n days
+rewindX_fi <- function(Xts, dayRew=1, fillNA = TRUE, last = TRUE, oldDates = TRUE){
+    # rewinds an Xts object by dayRew days
+    lastFlip <- function(X) {
+        if(last) {
+            last(X)
+        } else X
+    }
+    stopifnot(is.xts(Xts))
+    newDates <- index(Xts) - dayRew
+    rewindRows <- findInterval(newDates, index(Xts))
+    Xts_rew <- xts(rep(NA, nrow(Xts)),
+                   order.by = if(oldDates) index(Xts) else newDates)
+    nonZeros <- rewindRows[rewindRows > 0]
+    Xts_rew[rewindRows > 0,] <- if(fillNA) {
+        na.locf(Xts, na.rm = FALSE)[nonZeros,]
+    } else {
+        Xts_rew <- Xts[nonZeros, ]
+    }
+    lastFlip(Xts_rew)
+}
+#
+dateCompX_fi <- function(Xts, lagNum = 7, fillNA = TRUE, Yts = NULL){
+    fillTest <- function(X){if(fillNA) na.locf(X) else X }
+    stopifnot(is.xts(Xts),
+              if(!is.null(Yts)) is.xts(Yts) else TRUE
+              )
+    if(is.null(Yts)) Yts <- Xts
+    Xts - rewindX_fi(Yts,
+                     dayRew = lagNum,
+                     fillNA = fillNA,
+                     last = FALSE,
+                     oldDates = TRUE)
+}

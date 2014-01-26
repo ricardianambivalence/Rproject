@@ -28,3 +28,11 @@ bb <- benchmark(apply_fun(), apply_fun2(), apply_sd(), vapply_anon(),
           columns = c('test', 'elapsed', 'relative'),
           replications = 100,
           order = 'elapsed')
+
+ORIGINID   DESTINATIO   DESTINAT_1   TOTAL_TRAV   SHAPE_LENG
+25       5367          1  0.2056914   202.2393
+25       5368          2  0.2056914   202.2393
+25       5381          5  0.2432538   224.3947
+25       5382          6  0.2432538   224.3947
+25       5362          7  0.3670772   294.8987
+25       5363          8  0.3670772   294.8987
