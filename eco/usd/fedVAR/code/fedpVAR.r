@@ -1,5 +1,5 @@
 #{{{set-up Packs and Funs
-rm(list=ls()); gc()
+cleanUp()
 Sys.setenv(TZ = 'UTC')
 
 # load packages and functions
@@ -17,13 +17,13 @@ mrip(c(
 
 # }}}
 # {{{ PATHstuff
-projPATH <- file.path("~/Rproject/usd/fedVAR")
+projPATH <- file.path("~/Rproject/eco/usd/fedVAR")
 codePATH <- file.path(projPATH, "code")
 dataPATH <- file.path(projPATH, "data")
 plotPATH <- file.path(projPATH, "plot")
 # }}}
 getData <- TRUE
-# {{{  data stuff
+# data stuff {{{
 
 if(getData) {
     # data is CF_NAI, cf_fci, adj_cf_fci, unrate,
